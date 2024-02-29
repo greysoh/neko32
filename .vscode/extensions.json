@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "bbenoist.Nix",
+    
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "dustypomerleau.rust-syntax"
+    ]
+}
