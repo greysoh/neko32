@@ -1,0 +1,19 @@
+{
+  "name": "neko-32",
+  "version": "1.0.0",
+  "description": "CPU Prototype",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "cd out && node --enable-source-maps index.js",
+    "dev": "nodemon --watch src --ext ts,js,mjs,json --exec \"tsc && cd out && node --enable-source-maps index.js\""
+  },
+  "keywords": [],
+  "author": "greysoh",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "nodemon": "^3.0.3",
+    "typescript": "^5.3.3"
+  }
+}
