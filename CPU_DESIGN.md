@@ -1,12 +1,12 @@
 # Notes on CPU design
 Project "PICO-32" Architecture:
- - 32 bit CPU 
+ - 32 bit CPU
  - Must have a minimum of 128k of ram, more is allowed & HIGHLY recommended for best compatibility
  - (maybe has a total of 16megs for the official emulator?)
- 
+
  - CPU Level Instructions:
-   - nop
-   - jmp
+   - nop: Do nothing
+   - ret: Return (1 = should return, 0 = should not return)
    - eql: Equal
    - neq: Not equal
    - ngt: Number greater than
@@ -20,21 +20,19 @@ Project "PICO-32" Architecture:
    - spo: Stack pop
    - spe: Stack peek
 
- - Bitwise Instructions: 
+ - Bitwise Instructions:
    - lsb
    - rsb
    - not
    - and
    - orb
    - xor
-   
  - Math Instructions:
    - add
    - dec
    - mul
    - div
    - mod
- 
  - Registers (32 registers w/ 32 bit number max):
    - pc = program counter
    - sp = stack pointer

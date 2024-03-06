@@ -4,6 +4,8 @@
     
         "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
-        "dustypomerleau.rust-syntax"
+        "dustypomerleau.rust-syntax",
+
+        "JosephAbbey.customasm"
     ]
 }
