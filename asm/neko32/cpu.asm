@@ -10,10 +10,10 @@
     equals  {registerEq0: register} {registerEq1: register} {registerOutput: register} => 0x02 @registerEq0 @registerEq1 @registerOutput
     invert  {registerToInvert: register} {registerOutput: register} => 0x03 @registerToInvert @registerOutput
     grt_thn {registerEq0: register} {registerEq1: register} {registerOutput: register} => 0x04 @registerEq0 @registerEq1 @registerOutput
-    reg_wri {value: u8} {register: register} => 0x05 @value @register
-    mem_wri {register: register} {memory: u8} => 0x06 @register @memory
+    reg_wri {value: u32} {register: register} => 0x05 @value @register
+    mem_wri {register: register} {memory: register} => 0x06 @register @memory
     reg_mov {registerInput: register} {registerOutput: register} => 0x07 @registerInput @registerOutput
-    mem_mov {memoryInput: u8} {memoryOutput: u8} => 0x08 @memoryInput @memoryOutput
+    mem_mov {memoryInput: register} {memoryOutput: register} => 0x08 @memoryInput @memoryOutput
 
     ; Stack operations
     stack_push {register: register} => 0x09 @register
@@ -36,5 +36,5 @@
     math_mod {registerFirst: register} {registerSecond: register} {registerOutput: register} => 0x16 @registerFirst @registerSecond @registerOutput
 
     ; "Macros"
-    jump {address: u8} => asm { reg_wri {address} pc }
+    jump {address: register} => asm { reg_wri {address} pc }
 }
