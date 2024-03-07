@@ -38,5 +38,5 @@
     math_mod {registerFirst: register} {registerSecond: register} {registerOutput: register} => 0x16 @registerFirst @registerSecond @registerOutput
 
     ; "Macros"
-    jump {address: register} => asm { reg_wri {address} pc }
+    jump {address: u32} => asm { reg_wri {address} pc }
 }

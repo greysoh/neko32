@@ -38,10 +38,11 @@ type Instruction = {
 }
 
 function getInstructionLength(instruction: number): number {
+  if (instruction == Opcodes.RET) return 1;
   if (instruction == Opcodes.NOP || instruction == Opcodes.SPO) return 0;
 
   if (instruction == Opcodes.EQL || instruction == Opcodes.GHT) return 3;
-  if (instruction >= Opcodes.MEW && instruction <= Opcodes.MMV) return 3;
+  if (instruction >= Opcodes.MEW && instruction <= Opcodes.MMV) return 2;
 
   if (instruction == Opcodes.REW) return 5;
 
@@ -69,14 +70,11 @@ export class CPU {
   }
 
   decode(fetchedInstruction: number[]): Instruction {
-    // TODO: am lazy.
-    
     if (fetchedInstruction[0] == Opcodes.REW) {
       const instructionLength = getInstructionLength(fetchedInstruction[0]);
-
       return {
         opcode: fetchedInstruction[0],
-        arguments: [u32ToInt(fetchedInstruction.slice(1, instructionLength)), fetchedInstruction[instructionLength + 1]],
+        arguments: [u32ToInt(fetchedInstruction.slice(1, instructionLength + 1)), fetchedInstruction[instructionLength]],
 
         argumentLen: instructionLength
       }
@@ -93,6 +91,8 @@ export class CPU {
   }
 
   execute(instruction: Instruction): void {
+    this.registers[0] += instruction.argumentLen + 1; // Account for instruction
+
     switch (instruction.opcode) {
       default: {
         throw new Error("Illegal instruction")
@@ -100,6 +100,10 @@ export class CPU {
 
       case Opcodes.NOP: {
         break;
+      }
+
+      case Opcodes.RET: {
+        break; // TODOv
       }
 
       case Opcodes.EQL: {
@@ -113,7 +117,7 @@ export class CPU {
       }
 
       case Opcodes.GHT: {
-        this.registers[instruction.arguments[2]] = Number(instruction.arguments[0] > instruction.arguments[1])
+        this.registers[instruction.arguments[2]] = Number(this.registers[instruction.arguments[0]] > this.registers[instruction.arguments[1]])
         break;
       }
 
@@ -123,12 +127,12 @@ export class CPU {
       }
 
       case Opcodes.RMV: {
-        this.registers[instruction.arguments[1]] = this.registers[0];
+        this.registers[instruction.arguments[1]] = this.registers[instruction.arguments[0]];
         break;
       }
 
       case Opcodes.MEW: {
-        this.memory.set(instruction.arguments[0], instruction.arguments[1]);
+        this.memory.set(this.registers[instruction.arguments[0]], this.registers[instruction.arguments[1]]);
         break;
       }
 

@@ -15,6 +15,7 @@ export class Memory {
 
   constructor(memoryBase: Uint8Array) {
     this.rawMemory = memoryBase;
+    this.mmioEvents = [];
   }
 
   get(pos: number): number {

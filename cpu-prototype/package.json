@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "CPU Prototype",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
@@ -15,5 +16,8 @@
   "devDependencies": {
     "nodemon": "^3.0.3",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@types/node": "^20.11.25"
   }
 }
