@@ -6,6 +6,6 @@
         "tamasfe.even-better-toml",
         "dustypomerleau.rust-syntax",
 
-        "JosephAbbey.customasm"
+        "hlorenzi.customasm-vscode"
     ]
 }
