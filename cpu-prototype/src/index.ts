@@ -1,6 +1,6 @@
-import { readFile, stat } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 
-import { Memory, MMIOCallbackRead, MMIOCallbackWrite } from "./Core/Memory.js";
+import { Memory, MMIOCallbackWrite } from "./Core/Memory.js";
 import { CPU } from "./Core/CPU.js";
 
 if (!process.argv[2]) {
@@ -18,15 +18,24 @@ const registers = new Uint32Array(36);
 const cpu = new CPU(memory, registers);
 
 console.log("[init] Mapping memory...");
-memory.configureMMIO(0, 4096, (event, address, value) => {
+
+memory.configureMMIO(0, 4095, (event, address, value) => {
   if (event == MMIOCallbackWrite) throw new Error("Attempted to write to read only memory");
   if (address >= file.length) return 0;
 
   return file[address];
 });
 
+memory.configureMMIO(4096, 8191, (event, address, value) => {
+  if (!value) return 0;
+  process.stdout.write(String.fromCharCode(value));
+
+  return 0;
+});
+
 console.log("[init] Starting CPU...");
+
 while (true) {
-  console.log(registers[5]);
+  console.log("solved value: " + registers[6]);
   cpu.tick();
 }

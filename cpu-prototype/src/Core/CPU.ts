@@ -3,6 +3,7 @@ import type { Memory } from "./Memory";
 enum Opcodes {
   NOP = 0,
   RET,
+  FUN,
 
   EQL,
   INV,
@@ -45,11 +46,13 @@ function getInstructionLength(instruction: number): number {
   if (instruction >= Opcodes.MEW && instruction <= Opcodes.MMV) return 2;
 
   if (instruction == Opcodes.REW) return 5;
+  if (instruction == Opcodes.FUN) return 4;
+  if (instruction == Opcodes.INV) return 2;
 
   if (instruction == Opcodes.SPU || instruction == Opcodes.SPO) return 1;
   if (instruction >= Opcodes.LSB && instruction <= Opcodes.MOD) return 3;
 
-  throw new Error("Out of range");
+  throw new Error("Out of range for opcode: " + instruction);
 }
 
 function u32ToInt(list: number[]): number {
@@ -60,9 +63,15 @@ export class CPU {
   memory: Memory;
   registers: Uint32Array;
 
+  branchLog: number[];
+
   constructor(memory: Memory, registers: Uint32Array) {
     this.memory = memory;
     this.registers = registers;
+
+    this.registers[1] = 8192;
+
+    this.branchLog = [];
   }
 
   fetch(): number[] {
@@ -70,17 +79,23 @@ export class CPU {
   }
 
   decode(fetchedInstruction: number[]): Instruction {
+    const instructionLength = getInstructionLength(fetchedInstruction[0]);
+
     if (fetchedInstruction[0] == Opcodes.REW) {
-      const instructionLength = getInstructionLength(fetchedInstruction[0]);
       return {
         opcode: fetchedInstruction[0],
         arguments: [u32ToInt(fetchedInstruction.slice(1, instructionLength + 1)), fetchedInstruction[instructionLength]],
 
         argumentLen: instructionLength
       }
-    } else {
-      const instructionLength = getInstructionLength(fetchedInstruction[0]);
+    } else if (fetchedInstruction[0] == Opcodes.FUN) {
+      return {
+        opcode: fetchedInstruction[0],
+        arguments: [u32ToInt(fetchedInstruction.slice(1, instructionLength + 1))],
 
+        argumentLen: instructionLength
+      }
+    } else {
       return {
         opcode: fetchedInstruction[0],
         arguments: fetchedInstruction.slice(1, instructionLength + 1),
@@ -91,6 +106,7 @@ export class CPU {
   }
 
   execute(instruction: Instruction): void {
+    console.log(instruction);
     this.registers[0] += instruction.argumentLen + 1; // Account for instruction
 
     switch (instruction.opcode) {
@@ -103,7 +119,21 @@ export class CPU {
       }
 
       case Opcodes.RET: {
+        if (this.registers[instruction.arguments[0]]) {
+          const lastBranch = this.branchLog.pop();
+          if (!lastBranch) throw new Error("Nothing to branch to");
+
+          this.registers[0] = lastBranch;
+        }
+
         break; // TODOv
+      }
+
+      case Opcodes.FUN: {
+        this.branchLog.push(this.registers[0]);
+        this.registers[0] = instruction.arguments[0];
+
+        break;
       }
 
       case Opcodes.EQL: {
@@ -137,6 +167,9 @@ export class CPU {
       }
 
       case Opcodes.SPU: {
+        if (this.registers[1] > 9999) throw new Error("Limit over threshold in vCPU stack");
+        if (this.registers[1] < 8191) throw new Error("Limit under threshold in vCPU stack");
+        
         this.memory.set(this.registers[1], instruction.arguments[0]);
         this.registers[1]++;
 
@@ -194,7 +227,7 @@ export class CPU {
       }
 
       case Opcodes.MUL: {
-        this.registers[instruction.arguments[2]] = Math.floor(this.registers[instruction.arguments[0]] * this.registers[instruction.arguments[1]]);
+        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] * this.registers[instruction.arguments[1]];
         break;
       }
 
@@ -203,7 +236,7 @@ export class CPU {
         break;
       }
 
-      case Opcodes.DIV: {
+      case Opcodes.MOD: {
         this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] % this.registers[instruction.arguments[1]];
         break;
       }
