@@ -1,0 +1,25 @@
+{
+  "name": "typescript-base",
+  "version": "1.0.0",
+  "description": "Base TypeScript template to use",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "cd out && node --enable-source-maps index.js",
+    "dev": "nodemon --watch src --ext ts,js,mjs,json --exec \"tsc && cd out && node --enable-source-maps index.js\""
+  },
+  "keywords": [],
+  "author": "greysoh",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@babel/types": "^7.24.0",
+    "@types/node": "^20.11.25",
+    "nodemon": "^3.0.3",
+    "typescript": "^5.4.2"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.24.0"
+  }
+}

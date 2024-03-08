@@ -39,24 +39,24 @@ type Instruction = {
 }
 
 function getInstructionLength(instruction: number): number {
-  if (instruction == Opcodes.RET) return 1;
   if (instruction == Opcodes.NOP || instruction == Opcodes.SPO) return 0;
 
   if (instruction == Opcodes.EQL || instruction == Opcodes.GHT) return 3;
   if (instruction >= Opcodes.MEW && instruction <= Opcodes.MMV) return 2;
 
+  if (instruction == Opcodes.SPU || instruction == Opcodes.SPO) return 1;
+  if (instruction >= Opcodes.LSB && instruction <= Opcodes.MOD) return 3;
+
   if (instruction == Opcodes.REW) return 5;
   if (instruction == Opcodes.FUN) return 4;
   if (instruction == Opcodes.INV) return 2;
-
-  if (instruction == Opcodes.SPU || instruction == Opcodes.SPO) return 1;
-  if (instruction >= Opcodes.LSB && instruction <= Opcodes.MOD) return 3;
+  if (instruction == Opcodes.RET) return 1;
 
   throw new Error("Out of range for opcode: " + instruction);
 }
 
 function u32ToInt(list: number[]): number {
-  return list[0] * (Math.pow(256, 3)) + list[1] * (Math.pow(256, 2)) + list[2] * 256 + list[3];
+  return (list[0] << 24) | (list[1] << 16) | (list[2] << 8) | list[3];
 }
 
 export class CPU {
@@ -106,7 +106,6 @@ export class CPU {
   }
 
   execute(instruction: Instruction): void {
-    console.log(instruction);
     this.registers[0] += instruction.argumentLen + 1; // Account for instruction
 
     switch (instruction.opcode) {
