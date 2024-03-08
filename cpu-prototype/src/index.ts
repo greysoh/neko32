@@ -36,8 +36,7 @@ memory.configureMMIO(4096, 8191, (event, address, value) => {
 console.log("[init] Starting CPU...");
 
 while (true) {
-  console.log("solved value: " + registers[6]);
-  console.log("current pc: " + registers[0]);
-  
+  console.log("current number: " + registers[6]);
+
   cpu.tick();
 }
