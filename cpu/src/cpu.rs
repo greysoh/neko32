@@ -1,6 +1,3 @@
-const U32_SIZE: u8 = 4;
-const REG_SIZE: u8 = 1;
-
 #[derive(Debug)]
 pub struct IllegalOpcode;
 
@@ -8,7 +5,7 @@ pub struct IllegalOpcode;
 pub struct Instruction {
     pub opcode: u32,
     pub argv_len: u8,
-    pub argv: Vec<u8>,
+    pub argv: Vec<u32>,
 }
 
 struct Opcodes;
@@ -43,7 +40,7 @@ impl Opcodes {
     pub const MOD: u32 = 23; // Divide numbers (get remainder)
 }
 
-fn get_instruction_length(instruction: u32) -> u32 {
+fn get_instruction_length(instruction: u32) -> u8 {
     // TODO: This is a direct copy and paste from TypeScript.
     // This could probably be represented as a match statement, but this works
 
@@ -63,6 +60,44 @@ fn get_instruction_length(instruction: u32) -> u32 {
     todo!();
 }
 
-fn u32_to_int(list: &[u32]) -> u32 {
-    return (list[0] << 24) | (list[1] << 16) | (list[2] << 8) | list[3];
+fn u32_to_int(list: &[u8]) -> u32 {
+    return (u32::from(list[0]) << 24) | (u32::from(list[1]) << 16) | (u32::from(list[2]) << 8) | u32::from(list[3]);
+}
+
+fn fetch(pc: u32, memory: &[u8]) -> &[u8] {
+    return &memory[pc as usize..(pc + 8) as usize];
+}
+
+fn decode(fetched_instruction: &[u8]) -> Instruction {
+    let instruction_length: u8 = get_instruction_length(fetched_instruction[0].into());
+
+    if u32::from(fetched_instruction[0]) == Opcodes::REW {
+        let mut argv: Vec<u32> = Vec::new();
+        argv.push(u32_to_int(&fetched_instruction[1..instruction_length as usize]));
+        argv.push(fetched_instruction[instruction_length as usize].into());
+
+        return Instruction {
+            opcode: fetched_instruction[0] as u32,
+            argv_len: instruction_length,
+            argv: argv
+        };
+    } else if u32::from(fetched_instruction[0]) == Opcodes::FUN {
+        let mut argv: Vec<u32> = Vec::new();
+        argv.push(u32_to_int(&fetched_instruction[1..instruction_length as usize]));
+
+        return Instruction {
+            opcode: fetched_instruction[0] as u32,
+            argv_len: instruction_length,
+            argv: argv
+        };
+    } else {
+        let raw_argv: Vec<u8> = fetched_instruction[1..(instruction_length + 1) as usize].to_vec();
+        let argv: Vec<u32> = raw_argv.iter().map(|&byte| byte as u32).collect();
+
+        return Instruction {
+            opcode: fetched_instruction[0] as u32,
+            argv_len: instruction_length,
+            argv: argv
+        };
+    };
 }
