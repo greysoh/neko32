@@ -27,19 +27,4 @@ fn main() {
 
     let registers: &mut [u32; 36] = &mut [0; 36];
     registers[0] = 0x00;
-
-    loop {
-        if (registers[0] + 16) as usize >= memory.len() {
-            println!("CPU fault: program counter (current vCPU location) is greater than the currently avail memory");
-            exit(1);
-        }
-
-        let instruction_fetch: &[u8] = cpu::fetch(memory, registers[0]);
-
-        let decoded_instruction = cpu::decode(instruction_fetch).unwrap();
-        registers[0] += decoded_instruction.argv_len as u32 + 1;
-
-        dbg!(registers[0]);
-        dbg!(decoded_instruction);
-    }
 }
