@@ -1,7 +1,7 @@
 export const MMIOCallbackRead = 0x00;
 export const MMIOCallbackWrite = 0x01;
 
-type MMIOCallbackEvent = (event: number, address: number, value?: number) => number | undefined;
+export type MMIOCallbackEvent = (event: number, address: number, value?: number) => number | undefined;
 
 export class Memory {
   rawMemory: Uint8Array;

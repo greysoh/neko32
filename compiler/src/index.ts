@@ -11,7 +11,7 @@ const parsedFile = parse(file, {
 });
 
 function parseASTBlock() {
-
+  
 }
 
 for (const node of parsedFile.program.body) {

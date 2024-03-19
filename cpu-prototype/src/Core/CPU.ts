@@ -1,6 +1,6 @@
 import type { Memory } from "./Memory";
 
-enum Opcodes {
+export enum Opcodes {
   NOP = 0,
   RET,
   FUN,
@@ -161,7 +161,7 @@ export class CPU {
       }
 
       case Opcodes.MEW: {
-        this.memory.set(this.registers[instruction.arguments[0]], this.registers[instruction.arguments[1]]);
+        this.memory.set(this.registers[instruction.arguments[1]], this.registers[instruction.arguments[0]]);
         break;
       }
 
