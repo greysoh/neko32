@@ -22,12 +22,13 @@ Project "PICO-32" Architecture:
    - spe: Stack peek
 
  - Bitwise Instructions:
-   - lsb
-   - rsb
-   - not
-   - and
+   - lsb: Left Shift
+   - rsb: Right Shift
+   - not: Not
+   - and:
    - orb
    - xor
+  
  - Math Instructions:
    - add
    - dec

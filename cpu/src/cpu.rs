@@ -1,7 +1,6 @@
 #[derive(Debug)]
 pub struct IllegalOpcode;
 
-#[derive(Debug)]
 pub struct Instruction {
     pub opcode: u32,
     pub argv_len: u8,
@@ -34,7 +33,7 @@ impl Opcodes {
     pub const XOR: u32 = 18; // Xor (bitwise)
 
     pub const ADD: u32 = 19; // Add numbers
-    pub const DEC: u32 = 20; // Subtract numbers
+    pub const SUB: u32 = 20; // Subtract numbers
     pub const MUL: u32 = 21; // Multiply numbers
     pub const DIV: u32 = 22; // Divide numbers (not remainder)
     pub const MOD: u32 = 23; // Divide numbers (get remainder)
@@ -64,31 +63,32 @@ fn u32_to_int(list: &[u8]) -> u32 {
     return (u32::from(list[0]) << 24) | (u32::from(list[1]) << 16) | (u32::from(list[2]) << 8) | u32::from(list[3]);
 }
 
-fn fetch(pc: u32, memory: &[u8]) -> &[u8] {
+pub fn fetch(pc: u32, memory: &[u8]) -> &[u8] {
     return &memory[pc as usize..(pc + 8) as usize];
 }
 
-fn decode(fetched_instruction: &[u8]) -> Instruction {
+pub fn decode(fetched_instruction: &[u8]) -> Instruction {
     let instruction_length: u8 = get_instruction_length(fetched_instruction[0].into());
 
     if u32::from(fetched_instruction[0]) == Opcodes::REW {
         let mut argv: Vec<u32> = Vec::new();
-        argv.push(u32_to_int(&fetched_instruction[1..instruction_length as usize]));
+        
+        argv.push(u32_to_int(&fetched_instruction[1..(instruction_length + 1) as usize]));
         argv.push(fetched_instruction[instruction_length as usize].into());
 
         return Instruction {
             opcode: fetched_instruction[0] as u32,
             argv_len: instruction_length,
-            argv: argv
+            argv
         };
     } else if u32::from(fetched_instruction[0]) == Opcodes::FUN {
         let mut argv: Vec<u32> = Vec::new();
-        argv.push(u32_to_int(&fetched_instruction[1..instruction_length as usize]));
+        argv.push(u32_to_int(&fetched_instruction[1..(instruction_length + 1) as usize]));
 
         return Instruction {
             opcode: fetched_instruction[0] as u32,
             argv_len: instruction_length,
-            argv: argv
+            argv
         };
     } else {
         let raw_argv: Vec<u8> = fetched_instruction[1..(instruction_length + 1) as usize].to_vec();
@@ -97,7 +97,131 @@ fn decode(fetched_instruction: &[u8]) -> Instruction {
         return Instruction {
             opcode: fetched_instruction[0] as u32,
             argv_len: instruction_length,
-            argv: argv
+            argv
         };
     };
+}
+
+pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut [u8], cpu_stack: &mut Vec<u32>) {
+    registers[0] += 1 + instruction.argv_len as u32;
+
+    match instruction.opcode {
+        Opcodes::NOP => {
+            return;
+        }
+
+        Opcodes::RET => {
+            // Checking if it's 1 (true)
+            if registers[*instruction.argv.get(0).unwrap() as usize] == 1 {
+                let last_branch = cpu_stack.pop();
+                
+                if !last_branch.is_some() {
+                    panic!("Nothing to branch to");
+                }
+
+                registers[0] = last_branch.unwrap();
+            }
+        }
+
+        Opcodes::FUN => {
+            cpu_stack.push(registers[0]);
+            registers[0] = *instruction.argv.get(0).unwrap();
+        }
+
+        Opcodes::EQL => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = (registers[*instruction.argv.get(0).unwrap() as usize] == registers[*instruction.argv.get(1).unwrap() as usize]) as u32;
+        }
+
+        Opcodes::INV => {
+            registers[*instruction.argv.get(1).unwrap() as usize] = !(registers[*instruction.argv.get(0).unwrap() as usize]) as u32;
+        }
+
+        Opcodes::GHT => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = (registers[*instruction.argv.get(0).unwrap() as usize] > registers[*instruction.argv.get(1).unwrap() as usize]) as u32;
+        }
+
+        Opcodes::REW => {
+            registers[*instruction.argv.get(1).unwrap() as usize] = *instruction.argv.get(0).unwrap() as u32;
+        }
+
+        Opcodes::RMV => {
+            registers[*instruction.argv.get(1).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize];
+        }
+
+        Opcodes::MEW => {
+            memory[*instruction.argv.get(0).unwrap() as usize] = registers[*instruction.argv.get(1).unwrap() as usize] as u8;
+        }
+
+        Opcodes::MMV => {
+            memory[*instruction.argv.get(1).unwrap() as usize] = memory[*instruction.argv.get(0).unwrap() as usize]; 
+        }
+
+        Opcodes::SPU => {
+            if registers[1] > 9999 { panic!("Stack push: Limit over threshold in vCPU stack") }
+            if registers[1] < 8191 { panic!("Stack push: Limit under threshold in vCPU stack") }
+            
+            memory[registers[1] as usize] = 12;
+            registers[1] += 1;
+        }
+
+        Opcodes::SPE => {
+            registers[*instruction.argv.get(0).unwrap() as usize] = memory[registers[1] as usize] as u32;
+        }
+
+        Opcodes::SPO => {
+            registers[1] -= 1;
+        }
+
+        Opcodes::LSB => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] << registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+
+        Opcodes::RSB => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] >> registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+
+        Opcodes::NOT => {
+            registers[*instruction.argv.get(1).unwrap() as usize] = !registers[*instruction.argv.get(0).unwrap() as usize];
+        }
+
+        Opcodes::AND => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] & registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+
+        Opcodes::ORB => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] | registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+
+        Opcodes::XOR => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] ^ registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+
+        Opcodes::ADD => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] + registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+
+        Opcodes::SUB => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] - registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+
+        Opcodes::MUL => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] * registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+
+        Opcodes::DIV => {
+            registers[*instruction.argv.get(2).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize] / registers[*instruction.argv.get(1).unwrap() as usize];
+        }
+        
+        _ => panic!("Illegal instruction")
+    }
+
+    registers[3] = 0;
+    registers[4] = 1;
+}
+
+pub fn tick(registers: &mut [u32], memory: &mut [u8], cpu_stack: &mut Vec<u32>) {
+    let fetched_data: &[u8] = fetch(registers[0], &memory);
+    let instruction = decode(fetched_data);
+
+    execute(instruction, registers, memory, cpu_stack)
 }

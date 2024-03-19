@@ -125,7 +125,7 @@ export class CPU {
           this.registers[0] = lastBranch;
         }
 
-        break; // TODOv
+        break;
       }
 
       case Opcodes.FUN: {

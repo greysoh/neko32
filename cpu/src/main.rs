@@ -22,9 +22,20 @@ fn main() {
     }
 
     println!("intializing cpu...");
+
+    let file_contents_slice = &file_contents[..];
+    println!("file slice len: {}", file_contents_slice.len());
+
     let memory: &mut [u8; MEMORY_SIZE] = &mut [0; MEMORY_SIZE];
-    memory.copy_from_slice(&file_contents[..]);
+    memory[0..file_contents_slice.len()].copy_from_slice(file_contents_slice);
 
     let registers: &mut [u32; 36] = &mut [0; 36];
     registers[0] = 0x00;
+
+    let mut cpu_stack: Vec<u32> = Vec::new();
+
+    loop {
+        println!("running cpu tick");
+        cpu::tick(registers, memory, &mut cpu_stack);
+    }
 }
