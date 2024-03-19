@@ -35,7 +35,9 @@ fn main() {
     let mut cpu_stack: Vec<u32> = Vec::new();
 
     loop {
-        println!("running cpu tick");
+        println!("solved value: {}", registers[6]);
+        println!("current pc: {}", registers[0]);
+        
         cpu::tick(registers, memory, &mut cpu_stack);
     }
 }

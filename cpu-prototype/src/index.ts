@@ -37,5 +37,7 @@ console.log("[init] Starting CPU...");
 
 while (true) {
   console.log("solved value: " + registers[6]);
+  console.log("current pc: " + registers[0]);
+  
   cpu.tick();
 }
