@@ -65,9 +65,7 @@ fn u32_to_int(list: &[u8]) -> u32 {
 }
 
 fn overflow_resolver(number: u64) -> u32 {
-    if number == 2147483648 {
-        return 2147483648;
-    } else if number > 2147483648 {
+    if number > 2147483648 {
         return 0;
     } else  {
         return number as u32;
@@ -237,5 +235,5 @@ pub fn tick(registers: &mut [u32], memory: &mut [u8], cpu_stack: &mut Vec<u32>) 
     let fetched_data: &[u8] = fetch(registers[0], &memory);
     let instruction = decode(fetched_data);
 
-    execute(instruction, registers, memory, cpu_stack)
+    execute(instruction, registers, memory, cpu_stack);
 }
