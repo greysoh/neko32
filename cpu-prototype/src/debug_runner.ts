@@ -115,6 +115,16 @@ for await (const line of readline) {
       console.log(registers[parseInt(splitCommand[1])]);
       break;
     }
+
+    case "mem_write": {
+      memory.set(parseInt(splitCommand[1]), parseInt(splitCommand[2]));
+      break;
+    }
+
+    case "reg_write": {
+      registers[parseInt(splitCommand[1])] = parseInt(splitCommand[2]);
+      break;
+    }
   }
 
   process.stdout.write("$ ");
