@@ -1,3 +1,5 @@
+use super::memory;
+
 #[derive(Debug)]
 pub struct IllegalOpcode;
 
@@ -71,11 +73,11 @@ fn overflow_resolver(number: u64) -> u32 {
     };
 }
 
-pub fn fetch(pc: u32, memory: &[u8]) -> &[u8] {
-    return &memory[pc as usize..(pc + 8) as usize];
+pub fn fetch(pc: u32, memory: &mut memory::Memory) -> Vec<u8> {
+    return memory.get_bulk(pc, pc + 8);
 }
 
-pub fn decode(fetched_instruction: &[u8]) -> Instruction {
+pub fn decode(fetched_instruction: Vec<u8>) -> Instruction {
     let instruction_length: u8 = get_instruction_length(fetched_instruction[0].into());
 
     if u32::from(fetched_instruction[0]) == Opcodes::REW {
@@ -109,7 +111,7 @@ pub fn decode(fetched_instruction: &[u8]) -> Instruction {
         };
     };
 }
-pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut [u8], cpu_stack: &mut Vec<u32>) {
+pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut memory::Memory, cpu_stack: &mut Vec<u32>) {
     registers[0] += 1 + instruction.argv_len as u32;
 
     match instruction.opcode {
@@ -159,23 +161,24 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut [u8
         }
 
         Opcodes::MEW => {
-            memory[instruction.argv[0] as usize] = registers[instruction.argv[1] as usize] as u8;
+            memory.set(instruction.argv[0], registers[instruction.argv[1] as usize] as u8);
         }
 
         Opcodes::MMV => {
-            memory[instruction.argv[1] as usize] = memory[instruction.argv[0] as usize]; 
+            let got_value = memory.get(instruction.argv[1]);
+            memory.set(instruction.argv[0], got_value);
         }
 
         Opcodes::SPU => {
             if registers[1] > 9999 { panic!("Stack push: Limit over threshold in vCPU stack") }
             if registers[1] < 8191 { panic!("Stack push: Limit under threshold in vCPU stack") }
             
-            memory[registers[1] as usize] = registers[instruction.argv[0] as usize] as u8;
+            memory.set(registers[1], registers[instruction.argv[0] as usize] as u8);
             registers[1] += 1;
         }
 
         Opcodes::SPE => {
-            registers[instruction.argv[0] as usize] = memory[registers[1] as usize] as u32;
+            registers[instruction.argv[0] as usize] = memory.get(registers[1]) as u32;
         }
 
         Opcodes::SPO => {
@@ -229,8 +232,8 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut [u8
     registers[4] = 1;
 }
 
-pub fn tick(registers: &mut [u32], memory: &mut [u8], cpu_stack: &mut Vec<u32>) {
-    let fetched_data: &[u8] = fetch(registers[0], &memory);
+pub fn tick(registers: &mut [u32], memory: &mut memory::Memory, cpu_stack: &mut Vec<u32>) {
+    let fetched_data: Vec<u8> = fetch(registers[0], memory);
     let instruction = decode(fetched_data);
 
     execute(instruction, registers, memory, cpu_stack);

@@ -3,6 +3,7 @@ use std::fs;
 use std::process::exit;
 
 mod cpu;
+mod memory;
 
 const MEMORY_SIZE: usize = 16 * 1024 * 1024;
 
@@ -23,11 +24,14 @@ fn main() {
 
     println!("intializing cpu...");
 
-    let file_contents_slice = &file_contents[..];
+    let mut memory: memory::Memory = memory::Memory::new(MEMORY_SIZE);
 
-    let mut memory: Vec<u8> = vec![0; MEMORY_SIZE];
-    memory[0..file_contents_slice.len()].copy_from_slice(file_contents_slice);
-    
+    let mapped_file = memory::MappedFile {
+        file: file_contents
+    };
+
+    memory.add_mmio_device(0, Box::new(mapped_file));
+
     let registers: &mut [u32; 36] = &mut [0; 36];
     registers[0] = 0x00;
 
