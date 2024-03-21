@@ -1,7 +1,6 @@
 #[derive(Debug)]
 pub struct IllegalOpcode;
 
-#[derive(Debug)]
 pub struct Instruction {
     pub opcode: u32,
     pub argv_len: u8,
@@ -121,7 +120,6 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut [u8
         Opcodes::RET => {
             // Checking if it's 1 (true)
             if registers[instruction.argv[0] as usize] == 1 {
-
                 let last_branch = cpu_stack.pop();
                 
                 if !last_branch.is_some() {
