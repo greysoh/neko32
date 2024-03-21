@@ -120,7 +120,7 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut [u8
 
         Opcodes::RET => {
             // Checking if it's 1 (true)
-            if registers[*instruction.argv.get(0).unwrap() as usize] == 1 {
+            if registers[instruction.argv[0] as usize] == 1 {
 
                 let last_branch = cpu_stack.pop();
                 
@@ -134,50 +134,50 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut [u8
 
         Opcodes::FUN => {
             cpu_stack.push(registers[0]);
-            registers[0] = *instruction.argv.get(0).unwrap();
+            registers[0] = instruction.argv[0];
         }
 
         Opcodes::EQL => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = (registers[*instruction.argv.get(0).unwrap() as usize] == registers[*instruction.argv.get(1).unwrap() as usize]) as u32;
+            registers[instruction.argv[2] as usize] = (registers[instruction.argv[0] as usize] == registers[instruction.argv[1] as usize]) as u32;
         }
 
         Opcodes::INV => {
-            let index = *instruction.argv.get(0).unwrap() as usize;
+            let index = instruction.argv[0] as usize;
             let flipped_value = if registers[index] == 0 { 1 } else { 0 };
         
-            registers[*instruction.argv.get(1).unwrap() as usize] = flipped_value;
+            registers[instruction.argv[1] as usize] = flipped_value;
         }
 
         Opcodes::GHT => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = (registers[*instruction.argv.get(0).unwrap() as usize] > registers[*instruction.argv.get(1).unwrap() as usize]) as u32;
+            registers[instruction.argv[2] as usize] = (registers[instruction.argv[0] as usize] > registers[instruction.argv[1] as usize]) as u32;
         }
 
         Opcodes::REW => {
-            registers[*instruction.argv.get(1).unwrap() as usize] = *instruction.argv.get(0).unwrap();
+            registers[instruction.argv[1] as usize] = instruction.argv[0];
         }
 
         Opcodes::RMV => {
-            registers[*instruction.argv.get(1).unwrap() as usize] = registers[*instruction.argv.get(0).unwrap() as usize];
+            registers[instruction.argv[1] as usize] = registers[instruction.argv[0] as usize];
         }
 
         Opcodes::MEW => {
-            memory[*instruction.argv.get(0).unwrap() as usize] = registers[*instruction.argv.get(1).unwrap() as usize] as u8;
+            memory[instruction.argv[0] as usize] = registers[instruction.argv[1] as usize] as u8;
         }
 
         Opcodes::MMV => {
-            memory[*instruction.argv.get(1).unwrap() as usize] = memory[*instruction.argv.get(0).unwrap() as usize]; 
+            memory[instruction.argv[1] as usize] = memory[instruction.argv[0] as usize]; 
         }
 
         Opcodes::SPU => {
             if registers[1] > 9999 { panic!("Stack push: Limit over threshold in vCPU stack") }
             if registers[1] < 8191 { panic!("Stack push: Limit under threshold in vCPU stack") }
             
-            memory[registers[1] as usize] = registers[*instruction.argv.get(0).unwrap() as usize] as u8;
+            memory[registers[1] as usize] = registers[instruction.argv[0] as usize] as u8;
             registers[1] += 1;
         }
 
         Opcodes::SPE => {
-            registers[*instruction.argv.get(0).unwrap() as usize] = memory[registers[1] as usize] as u32;
+            registers[instruction.argv[0] as usize] = memory[registers[1] as usize] as u32;
         }
 
         Opcodes::SPO => {
@@ -185,43 +185,43 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut [u8
         }
 
         Opcodes::LSB => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver((registers[*instruction.argv.get(0).unwrap() as usize] as u64) << registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver((registers[instruction.argv[0] as usize] as u64) << registers[instruction.argv[1] as usize] as u64);
         }
 
         Opcodes::RSB => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver(registers[*instruction.argv.get(0).unwrap() as usize] as u64 >> registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver(registers[instruction.argv[0] as usize] as u64 >> registers[instruction.argv[1] as usize] as u64);
         }
 
         Opcodes::NOT => {
-            registers[*instruction.argv.get(1).unwrap() as usize] = overflow_resolver((!registers[*instruction.argv.get(0).unwrap() as usize]) as u64);
+            registers[instruction.argv[1] as usize] = overflow_resolver((!registers[instruction.argv[0] as usize]) as u64);
         }
 
         Opcodes::AND => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver(registers[*instruction.argv.get(0).unwrap() as usize] as u64 & registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver(registers[instruction.argv[0] as usize] as u64 & registers[instruction.argv[1] as usize] as u64);
         }
 
         Opcodes::ORB => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver(registers[*instruction.argv.get(0).unwrap() as usize] as u64 | registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver(registers[instruction.argv[0] as usize] as u64 | registers[instruction.argv[1] as usize] as u64);
         }
 
         Opcodes::XOR => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver(registers[*instruction.argv.get(0).unwrap() as usize] as u64 ^ registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver(registers[instruction.argv[0] as usize] as u64 ^ registers[instruction.argv[1] as usize] as u64);
         }
 
         Opcodes::ADD => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver(registers[*instruction.argv.get(0).unwrap() as usize] as u64 + registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver(registers[instruction.argv[0] as usize] as u64 + registers[instruction.argv[1] as usize] as u64);
         }
 
         Opcodes::SUB => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver(registers[*instruction.argv.get(0).unwrap() as usize] as u64 - registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver(registers[instruction.argv[0] as usize] as u64 - registers[instruction.argv[1] as usize] as u64);
         }
 
         Opcodes::MUL => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver(registers[*instruction.argv.get(0).unwrap() as usize] as u64 * registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver(registers[instruction.argv[0] as usize] as u64 * registers[instruction.argv[1] as usize] as u64);
         }
 
         Opcodes::DIV => {
-            registers[*instruction.argv.get(2).unwrap() as usize] = overflow_resolver(registers[*instruction.argv.get(0).unwrap() as usize] as u64 / registers[*instruction.argv.get(1).unwrap() as usize] as u64);
+            registers[instruction.argv[2] as usize] = overflow_resolver(registers[instruction.argv[0] as usize] as u64 / registers[instruction.argv[1] as usize] as u64);
         }
         
         _ => panic!("Illegal instruction")
