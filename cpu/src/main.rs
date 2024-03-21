@@ -4,7 +4,7 @@ use std::process::exit;
 
 mod cpu;
 
-const MEMORY_SIZE: usize = 128 * 1024;
+const MEMORY_SIZE: usize = 16 * 1024 * 1024;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -25,9 +25,9 @@ fn main() {
 
     let file_contents_slice = &file_contents[..];
 
-    let memory: &mut [u8; MEMORY_SIZE] = &mut [0; MEMORY_SIZE];
+    let mut memory: Vec<u8> = vec![0; MEMORY_SIZE];
     memory[0..file_contents_slice.len()].copy_from_slice(file_contents_slice);
-
+    
     let registers: &mut [u32; 36] = &mut [0; 36];
     registers[0] = 0x00;
 
@@ -37,6 +37,6 @@ fn main() {
         println!("solved value: {}", registers[6]);
         println!("current pc: {}", registers[0]);
         
-        cpu::tick(registers, memory, &mut cpu_stack);
+        cpu::tick(registers, &mut memory, &mut cpu_stack);
     }
 }
