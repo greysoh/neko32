@@ -22,16 +22,19 @@ main:
     return c1
 
   .convert_u32_to_u8_array:
+    ; (num >> 24) & 255
     reg_wri 24 r1  ; Shift size
     reg_wri 255 r2 ; Bitmask
 
-    bit_right r0 r1 r7 ; (num >> 24) & 255
+    bit_right r0 r1 r7
     bit_and r7 r2 r3
-  
+ 
+    ; (num >> 16) & 255 
     reg_wri 16 r1
     bit_right r0 r1 r7
     bit_and r7 r2 r4
 
+    ; (num >> 8) & 255
     reg_wri 8 r1
     bit_right r0 r1 r7
     bit_and r7 r2 r5
