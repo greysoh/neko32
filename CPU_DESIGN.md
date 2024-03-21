@@ -25,16 +25,16 @@ Project "PICO-32" Architecture:
    - lsb: Left Shift
    - rsb: Right Shift
    - not: Not
-   - and:
-   - orb
-   - xor
+   - and: And
+   - orb: Or
+   - xor: Xor
   
  - Math Instructions:
-   - add
-   - dec
-   - mul
-   - div
-   - mod
+   - add: Add
+   - sub: Subtract
+   - mul: Multiply
+   - div: Divide
+   - mod: Modulo (not required to be implemented)
  - Registers (32 registers w/ 32 bit number max):
    - pc = program counter
    - sp = stack pointer
