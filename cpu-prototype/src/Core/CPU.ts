@@ -12,6 +12,7 @@ export enum Opcodes {
   MEW,
   RMV,
   MMV,
+  MCP,
 
   SPU,
   SPE,
@@ -162,6 +163,11 @@ export class CPU {
 
       case Opcodes.MEW: {
         this.memory.set(this.registers[instruction.arguments[1]], this.registers[instruction.arguments[0]]);
+        break;
+      }
+
+      case Opcodes.MCP: {
+        this.registers[instruction.arguments[1]] = this.memory.get(this.registers[instruction.arguments[0]]);
         break;
       }
 

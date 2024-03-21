@@ -18,27 +18,29 @@ impl Opcodes {
     pub const EQL: u32 = 3; // Equals (boolean)
     pub const INV: u32 = 4; // Not (boolean)
     pub const GHT: u32 = 5; // Greater than
-    pub const REW: u32 = 6; // Register write
-    pub const MEW: u32 = 7; // Memory write
-    pub const RMV: u32 = 8; // Register moving
-    pub const MMV: u32 = 9; // Memory moving
 
-    pub const SPU: u32 = 10; // Stack push
-    pub const SPE: u32 = 11; // Stack peek
-    pub const SPO: u32 = 12; // Stack pop
+    pub const REW: u32 = 6;  // Register write
+    pub const MEW: u32 = 7;  // Memory write
+    pub const RMV: u32 = 8;  // Register moving
+    pub const MMV: u32 = 9;  // Memory moving
+    pub const MCP: u32 = 10; // Memory copy -> register
 
-    pub const LSB: u32 = 13; // Left shift (bitwise)
-    pub const RSB: u32 = 14; // Right shift (bitwise)
-    pub const NOT: u32 = 15; // Not (bitwise)
-    pub const AND: u32 = 16; // And (bitwise)
-    pub const ORB: u32 = 17; // Or (bitwise)
-    pub const XOR: u32 = 18; // Xor (bitwise)
+    pub const SPU: u32 = 11; // Stack push
+    pub const SPE: u32 = 12; // Stack peek
+    pub const SPO: u32 = 13; // Stack pop
 
-    pub const ADD: u32 = 19; // Add numbers
-    pub const SUB: u32 = 20; // Subtract numbers
-    pub const MUL: u32 = 21; // Multiply numbers
-    pub const DIV: u32 = 22; // Divide numbers (not remainder)
-    pub const MOD: u32 = 23; // Divide numbers (get remainder)
+    pub const LSB: u32 = 14; // Left shift (bitwise)
+    pub const RSB: u32 = 15; // Right shift (bitwise)
+    pub const NOT: u32 = 16; // Not (bitwise)
+    pub const AND: u32 = 17; // And (bitwise)
+    pub const ORB: u32 = 18; // Or (bitwise)
+    pub const XOR: u32 = 19; // Xor (bitwise)
+
+    pub const ADD: u32 = 20; // Add numbers
+    pub const SUB: u32 = 21; // Subtract numbers
+    pub const MUL: u32 = 22; // Multiply numbers
+    pub const DIV: u32 = 23; // Divide numbers (not remainder)
+    pub const MOD: u32 = 24; // Divide numbers (get remainder)
 }
 
 fn get_instruction_length(instruction: u32) -> u8 {
@@ -48,7 +50,7 @@ fn get_instruction_length(instruction: u32) -> u8 {
     if instruction == Opcodes::NOP || instruction == Opcodes::SPO { return 0; }
 
     if instruction == Opcodes::EQL || instruction == Opcodes::GHT { return 3; }
-    if instruction >= Opcodes::MEW && instruction <= Opcodes::MMV { return 2; }
+    if instruction >= Opcodes::MEW && instruction <= Opcodes::MCP { return 2; }
   
     if instruction == Opcodes::SPU || instruction == Opcodes::SPO { return 1; }
     if instruction >= Opcodes::LSB && instruction <= Opcodes::MOD { return 3; }
@@ -111,6 +113,7 @@ pub fn decode(fetched_instruction: Vec<u8>) -> Instruction {
         };
     };
 }
+
 pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut memory::Memory, cpu_stack: &mut Vec<u32>) {
     registers[0] += 1 + instruction.argv_len as u32;
 
@@ -167,6 +170,10 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut mem
         Opcodes::MMV => {
             let got_value = memory.get(instruction.argv[1]);
             memory.set(instruction.argv[0], got_value);
+        }
+
+        Opcodes::MCP => {
+            registers[instruction.argv[1] as usize] = memory.get(registers[instruction.argv[0] as usize]) as u32;
         }
 
         Opcodes::SPU => {
