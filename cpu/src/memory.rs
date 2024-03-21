@@ -31,6 +31,8 @@ impl Memory {
             }
         }
 
+        // Safely handle out of bounds reads
+        if self.memory.len() <= position as usize { return 0xFF; }
         return self.memory[position as usize];
     }
 

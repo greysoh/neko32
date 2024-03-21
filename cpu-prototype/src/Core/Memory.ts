@@ -28,6 +28,8 @@ export class Memory {
       return output;
     }
 
+    // Safely handle out of bounds reads
+    if (this.rawMemory.length <= pos) return 0xFF;
     return this.rawMemory[pos];
   }
 
