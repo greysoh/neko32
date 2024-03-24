@@ -101,7 +101,7 @@ for await (const line of readline) {
       const decodedInstruction = cpu.decode(fetchedInstruction);
       
       const foundInstructionOpcodes: string[] = Object.keys(Opcodes);
-      console.log(foundInstructionOpcodes[decodedInstruction.opcode + 24].toLowerCase() + " " + decodedInstruction.arguments.join(" "));
+      console.log(foundInstructionOpcodes[decodedInstruction.opcode + 25].toLowerCase() + " " + decodedInstruction.arguments.join(" "));
 
       break;
     }
@@ -123,6 +123,11 @@ for await (const line of readline) {
 
     case "reg_write": {
       registers[parseInt(splitCommand[1])] = parseInt(splitCommand[2]);
+      break;
+    }
+
+    case "branch_list": {
+      console.log(cpu.branchLog.join(" "));
       break;
     }
   }
