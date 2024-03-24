@@ -39,7 +39,6 @@ fn main() {
 
     loop {
         println!("solved value: {}", registers[6]);
-        println!("current pc: {}", registers[0]);
         
         cpu::tick(registers, &mut memory, &mut cpu_stack);
     }

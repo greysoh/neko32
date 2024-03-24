@@ -67,6 +67,10 @@ impl Memory {
 
         self.devices.push(real_mmio_device);
     }
+
+    pub fn len(&mut self) -> usize {
+        return self.memory.len();
+    }
 }
 
 // File implementation for CPU

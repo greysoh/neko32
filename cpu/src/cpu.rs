@@ -164,15 +164,33 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut mem
         }
 
         Opcodes::MEW => {
+            if memory.len() <= registers[instruction.argv[0] as usize] as usize {
+                registers[1] = 2;
+                return;
+            }
+
             memory.set(instruction.argv[0], registers[instruction.argv[1] as usize] as u8);
         }
 
         Opcodes::MMV => {
             let got_value = memory.get(instruction.argv[1]);
+
+            if memory.len() <= registers[instruction.argv[0] as usize] as usize {
+                registers[1] = 2;
+                return;
+            }
+
             memory.set(instruction.argv[0], got_value);
         }
 
         Opcodes::MCP => {
+            if memory.len() <= registers[instruction.argv[0] as usize] as usize {
+                registers[instruction.argv[1] as usize] = 255;
+                registers[1] = 1;
+
+                return;
+            }
+
             registers[instruction.argv[1] as usize] = memory.get(registers[instruction.argv[0] as usize]) as u32;
         }
 
@@ -180,11 +198,23 @@ pub fn execute(instruction: Instruction, registers: &mut [u32], memory: &mut mem
             if registers[1] > 9999 { panic!("Stack push: Limit over threshold in vCPU stack") }
             if registers[1] < 8191 { panic!("Stack push: Limit under threshold in vCPU stack") }
             
+            if memory.len() <= registers[instruction.argv[1] as usize] as usize {
+                registers[1] = 2;
+                return;
+            }
+
             memory.set(registers[1], registers[instruction.argv[0] as usize] as u8);
             registers[1] += 1;
         }
 
         Opcodes::SPE => {
+            if memory.len() <= registers[instruction.argv[1] as usize] as usize {
+                registers[instruction.argv[1] as usize] = 255;
+                registers[1] = 1;
+
+                return;
+            }
+
             registers[instruction.argv[0] as usize] = memory.get(registers[1]) as u32;
         }
 
