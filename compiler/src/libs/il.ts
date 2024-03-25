@@ -29,8 +29,50 @@ export enum Opcodes {
   MOD
 }
 
+export enum Registers {
+  pc = 0x00, // Program counter
+  sp,        // Stack pointer
+  ex,        // Exception value (normally 0, if left unchecked)
+  c0,        // Constant set to 0
+  c1,        // Constant set to 1
+
+  // Usable registers
+  r0,
+  r1, 
+  r2, 
+  r3, 
+  r4, 
+  r5, 
+  r6, 
+  r7, 
+  r8, 
+  r9, 
+  r10, 
+  r11,
+  r12, 
+  r13, 
+  r14, 
+  r15, 
+  r16, 
+  r17, 
+  r18, 
+  r19, 
+  r20, 
+  r21,
+  r22,
+  r23,
+  r24, 
+  r25, 
+  r26, 
+  r27, 
+  r28, 
+  r29, 
+  r30, 
+  r31
+}
+
 export type Argument = {
-  type: "u8" | "u32" | "func",
+  type: "u8" | "u32" | "func" | "register",
   value: number | string // if func, should be string
 }
 
@@ -71,6 +113,11 @@ export function writeIL(file: File): Uint8Array {
         if (argument.type == "u8") {
           if (typeof argument.value != "number") throw new Error("u8 should be a number");
           expressionBuilt.push(argument.value);
+        } else if (argument.type == "register") {
+          if (typeof argument.value != "number") throw new Error("Register should be a number");
+          if (argument.value > 36 || argument.value < 0) throw new Error("Register out of range");
+
+          expressionBuilt.push(argument.value);
         } else if (argument.type == "u32") {
           if (typeof argument.value != "number") throw new Error("u32 should be a number");
           expressionBuilt.push(...toU32(argument.value));
@@ -79,7 +126,7 @@ export function writeIL(file: File): Uint8Array {
           if (!file[argument.value]) throw new Error("could not find the function");
 
           expressionBuilt.push(0, 0, 0, 0);
-          positionsToFigureOut[data.length + expressionBuilt.length] = argument.value;
+          positionsToFigureOut[data.length + expressionBuilt.length - 2] = argument.value;
         }
       }
 
@@ -88,14 +135,18 @@ export function writeIL(file: File): Uint8Array {
   }
 
   for (const positionRawKey of Object.keys(positionsToFigureOut)) {
-    const positionKey: number = parseInt(positionRawKey);
-    const position = positionsToFigureOut[positionKey];
+    const realPosiiton: number = parseInt(positionRawKey);
+    const functionPosition: number = functionPositions[positionsToFigureOut[realPosiiton]];
+
+    if (typeof functionPosition == "undefined") {
+      throw new Error("Undefined function: " + positionsToFigureOut[realPosiiton]);
+    }
     
-    const functionPosition = functionPositions[position];
-    
-    data.splice(functionPosition, 4, ...toU32(functionPosition));
+    data.splice(realPosiiton - 2, 4, ...toU32(functionPosition));
   }
 
+  console.log(data);
+  
   if (data.length > 4096) throw new Error("Rom is too big!");
   return new Uint8Array(data);
 }
