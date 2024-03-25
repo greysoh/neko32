@@ -145,8 +145,6 @@ export function writeIL(file: File): Uint8Array {
     data.splice(realPosiiton - 2, 4, ...toU32(functionPosition));
   }
 
-  console.log(data);
-  
-  if (data.length > 4096) throw new Error("Rom is too big!");
+  if (data.length > 4096) console.warn("WARN: ROM is too big to fit in dedicated memory! This may not be a problem, if you're using MMIO. See: docs todo");
   return new Uint8Array(data);
 }

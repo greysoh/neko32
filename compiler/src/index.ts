@@ -1,19 +1,24 @@
-import { strict as assert } from "node:assert";
 import { readFile, writeFile } from "node:fs/promises";
 
-import { parse } from "@babel/parser";
 import type { BlockStatement } from "@babel/types";
+import { parse } from "@babel/parser";
 
 import { writeIL, Opcodes, Registers, type File, type Expression } from "./libs/il.js";
+import { parseCallExpression } from "./parsers/CallExpression.js";
 
 const il: File = {};
+
+console.log("Neko Compiler");
+console.log("WARN: in testing phase, don't use in production!");
+
+console.log(" - Lexifying");
 
 const file = await readFile(process.argv[2], "utf8");
 const parsedFile = parse(file, {
   sourceType: "module"
 });
 
-console.log(" - Converting lex to IL");
+console.log(" - Converting from lex to compiler object");
 
 function parseBlock(functionName: string, block: BlockStatement) {
   const ilData: Expression[] = [];
@@ -48,48 +53,10 @@ function parseBlock(functionName: string, block: BlockStatement) {
       }
 
       case "ExpressionStatement": {
-        if (element.expression.type != "CallExpression") throw new Error("Unsupported expression");
+        if (element.expression.type == "CallExpression") {
+          parseCallExpression(element, ilData);
+        } else {
 
-        if (element.expression.callee.type == "Identifier") {
-          ilData.push({
-            opcode: Opcodes.FUN,
-            arguments: [
-              {
-                type: "func",
-                value: element.expression.callee.name
-              }
-            ]
-          });
-        } else if (element.expression.callee.type == "MemberExpression") {
-          // @ts-ignore
-          if (element.expression.callee.object.name != "CPU") throw new Error("Illegal function");
-          assert.ok(element.expression.callee.property.type == "Identifier", "Callee property should be Identifier");
-
-          switch (element.expression.callee.property.name) {
-            default: {
-              throw new Error("Unimplemented CPU call: " + element.expression.callee.property.name);
-            }
-
-            case "jump": {
-              ilData.push({
-                opcode: Opcodes.REW,
-
-                arguments: [
-                  {
-                    type: "func",
-                    // @ts-ignore
-                    value: element.expression.arguments[0].loc?.identifierName
-                  },
-                  {
-                    type: "register",
-                    value: 0
-                  }
-                ]
-              });
-
-              break;
-            }
-          }
         }
 
         break;
@@ -117,4 +84,5 @@ for (const element of parsedFile.program.body) {
 console.log(" - Compiling");
 const data = writeIL(il);
 
+console.log(" - Writing file");
 await writeFile("./a.out.bin", data);
