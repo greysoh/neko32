@@ -16,8 +16,6 @@ const parsedFile = parse(file, {
 console.log(" - Converting lex to IL");
 
 function parseBlock(functionName: string, block: BlockStatement) {
-  console.log("o/ from function: " + functionName);
-
   const ilData: Expression[] = [];
   il[functionName] = ilData;
 
@@ -101,11 +99,9 @@ function parseBlock(functionName: string, block: BlockStatement) {
 }
 
 for (const element of parsedFile.program.body) {
-  console.log("Recieved element: %s", element.type);
-  
   switch (element.type) {
     default: {
-      throw new Error("Unsupported element: " + element.type);
+      throw new Error("Unsupported top level element: " + element.type);
     }
 
     case "FunctionDeclaration": {
