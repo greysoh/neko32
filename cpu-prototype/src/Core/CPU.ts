@@ -162,11 +162,23 @@ export class CPU {
       }
 
       case Opcodes.MEW: {
+        if (this.memory.length <= this.registers[instruction.arguments[1]]) {
+          this.registers[1] = 2;
+          break;
+        }
+        
         this.memory.set(this.registers[instruction.arguments[1]], this.registers[instruction.arguments[0]]);
         break;
       }
 
       case Opcodes.MCP: {
+        if (this.memory.length <= this.registers[instruction.arguments[0]]) {
+          this.registers[instruction.arguments[1]] = 255;
+          this.registers[1] = 1;
+
+          break;
+        }
+
         this.registers[instruction.arguments[1]] = this.memory.get(this.registers[instruction.arguments[0]]);
         break;
       }
@@ -175,6 +187,11 @@ export class CPU {
         if (this.registers[1] > 9999) throw new Error("Limit over threshold in vCPU stack");
         if (this.registers[1] < 8191) throw new Error("Limit under threshold in vCPU stack");
         
+        if (this.memory.length <= this.registers[instruction.arguments[1]]) {
+          this.registers[1] = 2;
+          break;
+        } 
+
         this.memory.set(this.registers[1], instruction.arguments[0]);
         this.registers[1]++;
 
@@ -182,6 +199,13 @@ export class CPU {
       }
 
       case Opcodes.SPE: {
+        if (this.memory.length <= this.registers[instruction.arguments[1]]) {
+          this.registers[instruction.arguments[1]] = 255;
+          this.registers[1] = 1;
+
+          break;
+        }
+
         this.registers[instruction.arguments[0]] = this.memory.get(this.registers[1]);
         break;
       }

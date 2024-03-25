@@ -68,4 +68,8 @@ export class Memory {
       endPos
     });
   }
+
+  public get length() {
+    return this.rawMemory.length;
+  }
 }
