@@ -29,21 +29,21 @@ export enum Opcodes {
   SUB,
   MUL,
   DIV,
-  MOD
+  MOD,
 }
 
 type Instruction = {
-  opcode: number,
+  opcode: number;
 
-  arguments: number[],
-  argumentLen: number
-}
+  arguments: number[];
+  argumentLen: number;
+};
 
 function getInstructionLength(instruction: number): number {
   if (instruction == Opcodes.NOP || instruction == Opcodes.SPO) return 0;
 
   if (instruction == Opcodes.EQL || instruction == Opcodes.GHT) return 3;
-  if (instruction >= Opcodes.MEW && instruction <= Opcodes.MMV) return 2;
+  if (instruction >= Opcodes.MEW && instruction <= Opcodes.MCP) return 2;
 
   if (instruction == Opcodes.SPU || instruction == Opcodes.SPO) return 1;
   if (instruction >= Opcodes.LSB && instruction <= Opcodes.MOD) return 3;
@@ -85,24 +85,29 @@ export class CPU {
     if (fetchedInstruction[0] == Opcodes.REW) {
       return {
         opcode: fetchedInstruction[0],
-        arguments: [u32ToInt(fetchedInstruction.slice(1, instructionLength + 1)), fetchedInstruction[instructionLength]],
+        arguments: [
+          u32ToInt(fetchedInstruction.slice(1, instructionLength + 1)),
+          fetchedInstruction[instructionLength],
+        ],
 
-        argumentLen: instructionLength
-      }
+        argumentLen: instructionLength,
+      };
     } else if (fetchedInstruction[0] == Opcodes.FUN) {
       return {
         opcode: fetchedInstruction[0],
-        arguments: [u32ToInt(fetchedInstruction.slice(1, instructionLength + 1))],
+        arguments: [
+          u32ToInt(fetchedInstruction.slice(1, instructionLength + 1)),
+        ],
 
-        argumentLen: instructionLength
-      }
+        argumentLen: instructionLength,
+      };
     } else {
       return {
         opcode: fetchedInstruction[0],
         arguments: fetchedInstruction.slice(1, instructionLength + 1),
 
-        argumentLen: instructionLength
-      }
+        argumentLen: instructionLength,
+      };
     }
   }
 
@@ -111,7 +116,7 @@ export class CPU {
 
     switch (instruction.opcode) {
       default: {
-        throw new Error("Illegal instruction")
+        throw new Error("Illegal instruction");
       }
 
       case Opcodes.NOP: {
@@ -137,17 +142,25 @@ export class CPU {
       }
 
       case Opcodes.EQL: {
-        this.registers[instruction.arguments[2]] = Number(this.registers[instruction.arguments[0]] == this.registers[instruction.arguments[1]]);
+        this.registers[instruction.arguments[2]] = Number(
+          this.registers[instruction.arguments[0]] ==
+            this.registers[instruction.arguments[1]],
+        );
         break;
       }
 
       case Opcodes.INV: {
-        this.registers[instruction.arguments[1]] = Number(!this.registers[instruction.arguments[0]]);
+        this.registers[instruction.arguments[1]] = Number(
+          !this.registers[instruction.arguments[0]],
+        );
         break;
       }
 
       case Opcodes.GHT: {
-        this.registers[instruction.arguments[2]] = Number(this.registers[instruction.arguments[0]] > this.registers[instruction.arguments[1]])
+        this.registers[instruction.arguments[2]] = Number(
+          this.registers[instruction.arguments[0]] >
+            this.registers[instruction.arguments[1]],
+        );
         break;
       }
 
@@ -157,7 +170,8 @@ export class CPU {
       }
 
       case Opcodes.RMV: {
-        this.registers[instruction.arguments[1]] = this.registers[instruction.arguments[0]];
+        this.registers[instruction.arguments[1]] =
+          this.registers[instruction.arguments[0]];
         break;
       }
 
@@ -166,8 +180,11 @@ export class CPU {
           this.registers[1] = 2;
           break;
         }
-        
-        this.memory.set(this.registers[instruction.arguments[1]], this.registers[instruction.arguments[0]]);
+
+        this.memory.set(
+          this.registers[instruction.arguments[1]],
+          this.registers[instruction.arguments[0]],
+        );
         break;
       }
 
@@ -179,18 +196,22 @@ export class CPU {
           break;
         }
 
-        this.registers[instruction.arguments[1]] = this.memory.get(this.registers[instruction.arguments[0]]);
+        this.registers[instruction.arguments[1]] = this.memory.get(
+          this.registers[instruction.arguments[0]],
+        );
         break;
       }
 
       case Opcodes.SPU: {
-        if (this.registers[1] > 9999) throw new Error("Limit over threshold in vCPU stack");
-        if (this.registers[1] < 8191) throw new Error("Limit under threshold in vCPU stack");
-        
+        if (this.registers[1] > 9999)
+          throw new Error("Limit over threshold in vCPU stack");
+        if (this.registers[1] < 8191)
+          throw new Error("Limit under threshold in vCPU stack");
+
         if (this.memory.length <= this.registers[instruction.arguments[1]]) {
           this.registers[1] = 2;
           break;
-        } 
+        }
 
         this.memory.set(this.registers[1], instruction.arguments[0]);
         this.registers[1]++;
@@ -206,7 +227,9 @@ export class CPU {
           break;
         }
 
-        this.registers[instruction.arguments[0]] = this.memory.get(this.registers[1]);
+        this.registers[instruction.arguments[0]] = this.memory.get(
+          this.registers[1],
+        );
         break;
       }
 
@@ -214,59 +237,81 @@ export class CPU {
         this.registers[1]--;
         break;
       }
-      
+
       case Opcodes.LSB: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] << this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] <<
+          this.registers[instruction.arguments[1]];
         break;
       }
 
       case Opcodes.RSB: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] >> this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] >>
+          this.registers[instruction.arguments[1]];
         break;
       }
-      
+
       case Opcodes.NOT: {
-        this.registers[instruction.arguments[1]] = ~this.registers[instruction.arguments[0]];
+        this.registers[instruction.arguments[1]] =
+          ~this.registers[instruction.arguments[0]];
         break;
       }
 
       case Opcodes.AND: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] & this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] &
+          this.registers[instruction.arguments[1]];
         break;
       }
 
       case Opcodes.ORB: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] | this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] |
+          this.registers[instruction.arguments[1]];
         break;
       }
 
       case Opcodes.XOR: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] ^ this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] ^
+          this.registers[instruction.arguments[1]];
         break;
       }
 
       case Opcodes.ADD: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] + this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] +
+          this.registers[instruction.arguments[1]];
         break;
       }
 
       case Opcodes.SUB: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] - this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] -
+          this.registers[instruction.arguments[1]];
         break;
       }
 
       case Opcodes.MUL: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] * this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] *
+          this.registers[instruction.arguments[1]];
         break;
       }
 
       case Opcodes.DIV: {
-        this.registers[instruction.arguments[2]] = Math.floor(this.registers[instruction.arguments[0]] / this.registers[instruction.arguments[1]]);
+        this.registers[instruction.arguments[2]] = Math.floor(
+          this.registers[instruction.arguments[0]] /
+            this.registers[instruction.arguments[1]],
+        );
         break;
       }
 
       case Opcodes.MOD: {
-        this.registers[instruction.arguments[2]] = this.registers[instruction.arguments[0]] % this.registers[instruction.arguments[1]];
+        this.registers[instruction.arguments[2]] =
+          this.registers[instruction.arguments[0]] %
+          this.registers[instruction.arguments[1]];
         break;
       }
     }
@@ -274,7 +319,7 @@ export class CPU {
     this.registers[3] = 0;
     this.registers[4] = 1;
   }
-  
+
   reset(): void {
     this.memory.clear();
   }

@@ -14,15 +14,16 @@ console.log("[init] Mapping memory...");
 
 const file = await readFile(process.argv[2]);
 
-const memoryBase = new Uint8Array(16*1024*1024);
+const memoryBase = new Uint8Array(16 * 1024 * 1024);
 const memory = new Memory(memoryBase);
 
-const registers = new Uint32Array(36);
+const registers = new Uint32Array(37);
 
 const cpu = new CPU(memory, registers);
 
 memory.configureMMIO(0, 4094, (event, address, value) => {
-  if (event == MMIOCallbackWrite) throw new Error("Attempted to write to read only memory");
+  if (event == MMIOCallbackWrite)
+    throw new Error("Attempted to write to read only memory");
   if (address >= file.length) return 0;
 
   return file[address];

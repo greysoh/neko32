@@ -10,17 +10,18 @@ console.log("[init] Init devices");
 
 let file: Buffer | undefined;
 
-const memoryBase = new Uint8Array(16*1024*1024);
+const memoryBase = new Uint8Array(16 * 1024 * 1024);
 const memory = new Memory(memoryBase);
 
-const registers = new Uint32Array(36);
+const registers = new Uint32Array(37);
 
 const cpu = new CPU(memory, registers);
 
 memory.configureMMIO(0, 4094, (event, address, value) => {
   if (!file) return 0;
 
-  if (event == MMIOCallbackWrite) throw new Error("Attempted to write to read only memory");
+  if (event == MMIOCallbackWrite)
+    throw new Error("Attempted to write to read only memory");
   if (address >= file.length) return 0;
 
   return file[address];
@@ -32,8 +33,8 @@ binder.initMemoryMMIO(memory);
 binder.addMMIODevice(new KeyboardIO());
 
 const readline = createInterface({
-  input: process.stdin, //or fileStream 
-  output: process.stdout
+  input: process.stdin, //or fileStream
+  output: process.stdout,
 });
 
 console.log("[init] Ready");
@@ -83,7 +84,7 @@ for await (const line of readline) {
 
       console.log("Loaded ROM file.");
 
-      break; 
+      break;
     }
 
     case "step": {
@@ -99,9 +100,13 @@ for await (const line of readline) {
     case "dis": {
       const fetchedInstruction = cpu.fetch();
       const decodedInstruction = cpu.decode(fetchedInstruction);
-      
+
       const foundInstructionOpcodes: string[] = Object.keys(Opcodes);
-      console.log(foundInstructionOpcodes[decodedInstruction.opcode + 25].toLowerCase() + " " + decodedInstruction.arguments.join(" "));
+      console.log(
+        foundInstructionOpcodes[decodedInstruction.opcode + 25].toLowerCase() +
+          " " +
+          decodedInstruction.arguments.join(" "),
+      );
 
       break;
     }
