@@ -1,11 +1,12 @@
 import { strict as assert } from "node:assert";
 
 import type { CallExpression, ExpressionStatement } from "@babel/types";
-import { Opcodes, type Expression } from "../libs/il.js";
 
-export function parseCallExpression(element: ExpressionStatement, ilData: Expression[]): void {
-  // @ts-ignore
-  const expression: CallExpression = element.expression;
+import { Opcodes, type Expression } from "../libs/il.js";
+import type { Configuration } from "../libs/types.js";
+
+export function parseCallExpression(element: ExpressionStatement, ilData: Expression[], configuration: Configuration): void {
+  const expression: CallExpression = element.expression as CallExpression;
 
   if (expression.callee.type == "Identifier") {
     ilData.push({
@@ -34,6 +35,7 @@ export function parseCallExpression(element: ExpressionStatement, ilData: Expres
           arguments: [
             {
               type: "func",
+              // TODO: Update this to use the correct value & check types properly
               // @ts-ignore
               value: expression.arguments[0].loc?.identifierName
             },

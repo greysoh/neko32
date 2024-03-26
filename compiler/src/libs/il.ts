@@ -10,6 +10,7 @@ export enum Opcodes {
   MEW,
   RMV,
   MMV,
+  MCP,
 
   SPU,
   SPE,

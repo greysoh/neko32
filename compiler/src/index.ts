@@ -4,9 +4,22 @@ import type { BlockStatement } from "@babel/types";
 import { parse } from "@babel/parser";
 
 import { writeIL, Opcodes, Registers, type File, type Expression } from "./libs/il.js";
+import type { Configuration } from "./libs/types.js";
+
+import { parseAssignmentExpression } from "./parsers/AssignmentExpression.js";
+import { parseMemberExpression } from "./parsers/MemberExpression.js";
 import { parseCallExpression } from "./parsers/CallExpression.js";
 
 const il: File = {};
+
+const compilerOptions: Configuration = {
+  firstValueLocation: 34,
+  secondValueLocation: 35,
+  thirdValueLocation: 36,
+
+  tempMemoryValueMethod: "stack",
+  tempMemoryValueLocation: 1024
+};
 
 console.log("Neko Compiler");
 console.log("WARN: in testing phase, don't use in production!");
@@ -54,9 +67,13 @@ function parseBlock(functionName: string, block: BlockStatement) {
 
       case "ExpressionStatement": {
         if (element.expression.type == "CallExpression") {
-          parseCallExpression(element, ilData);
+          parseCallExpression(element, ilData, compilerOptions);
+        } else if (element.expression.type == "MemberExpression") {
+          parseMemberExpression(element, ilData, compilerOptions);
+        } else if (element.expression.type == "AssignmentExpression") {
+          parseAssignmentExpression(element, ilData, compilerOptions);
         } else {
-
+          throw new Error("Unknown expression statement: " + element.expression.type);
         }
 
         break;
