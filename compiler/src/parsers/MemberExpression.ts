@@ -26,7 +26,7 @@ export function parseMemberExpression(element: ExpressionStatement, ilData: Expr
           },
           {
             type: "register",
-            value: Registers.r29
+            value: configuration.firstValueLocation
           }
         ]
       });
@@ -40,7 +40,7 @@ export function parseMemberExpression(element: ExpressionStatement, ilData: Expr
           },
           {
             type: "register",
-            value: Registers.r29
+            value: configuration.firstValueLocation
           }
         ]
       });
@@ -50,11 +50,11 @@ export function parseMemberExpression(element: ExpressionStatement, ilData: Expr
         arguments: [
           {
             type: "register",
-            value: Registers.r29
+            value: configuration.firstValueLocation
           },
           {
             type: "register",
-            value: Registers.r30
+            value: configuration.secondValueLocation
           }
         ]
       });
@@ -64,11 +64,11 @@ export function parseMemberExpression(element: ExpressionStatement, ilData: Expr
         arguments: [
           {
             type: "register",
-            value: Registers.r30
+            value: configuration.secondValueLocation
           },
           {
             type: "register",
-            value: Registers.r29
+            value: configuration.firstValueLocation
           }
         ]
       });

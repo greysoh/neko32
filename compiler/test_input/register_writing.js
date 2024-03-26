@@ -1,6 +1,9 @@
 function main() {
-  CPU.registers[7];
-  CPU.registers[9] = 4;
+  CPU.registers[6] = 0;
+  CPU.jump(real);
+}
 
-  CPU.jump(main);
+function real() {
+  CPU.registers[6] = CPU.registers[6] + 1;
+  CPU.jump(real);
 }

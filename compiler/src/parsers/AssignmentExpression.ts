@@ -2,13 +2,15 @@ import type { ExpressionStatement, AssignmentExpression, MemberExpression, Numer
 import { Opcodes, type Expression, Registers } from "../libs/il.js";
 
 import { CompilerNotImplementedError } from "../libs/todo!.js";
+import { parseBinaryExpression } from "./BinaryExpression.js";
+
 import type { Configuration } from "../libs/types.js";
 
 export function parseAssignmentExpression(element: ExpressionStatement, ilData: Expression[], configuration: Configuration): void {
   const expression: AssignmentExpression = element.expression as AssignmentExpression;
 
   if (expression.operator != "=") throw new CompilerNotImplementedError("You must use '=' only for now");
-  
+
   if (expression.left.type != "MemberExpression") throw new CompilerNotImplementedError("Only member expressions for setting variables are supported right now");
 
   const expressionObject: MemberExpression = expression.left.object as MemberExpression;
@@ -32,18 +34,23 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
         },
         {
           type: "register",
-          value: Registers.r29
+          value: configuration.firstValueLocation
         }
       ]
     });
 
-    outputDataRegAddr = Registers.r29;
+    outputDataRegAddr = configuration.firstValueLocation;
   } else if (expression.right.type == "BinaryExpression") {
-    throw new CompilerNotImplementedError("Math expressions are not implemented right now");
+    parseBinaryExpression({
+      type: "ExpressionStatement",
+      expression: expression.right
+    }, ilData, configuration);
+
+    outputDataRegAddr = configuration.firstValueLocation;
   } else {
     throw new Error("Unknown expression value");
   }
-  
+
   if (destCallerData.name == "registers") {
     ilData.push({
       opcode: Opcodes.RMV,
@@ -69,7 +76,7 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
         },
         {
           type: "register",
-          value: Registers.r29
+          value: configuration.firstValueLocation
         }
       ]
     });
@@ -83,9 +90,9 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
         },
         {
           type: "register",
-          value: Registers.r30
+          value: configuration.secondValueLocation
         }
-      ]  
+      ]
     });
 
     ilData.push({
@@ -93,11 +100,11 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
       arguments: [
         {
           type: "register",
-          value: Registers.r29
+          value: configuration.firstValueLocation
         },
         {
           type: "register",
-          value: Registers.r30
+          value: configuration.secondValueLocation
         }
       ]
     });

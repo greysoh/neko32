@@ -3,7 +3,13 @@ import { readFile, writeFile } from "node:fs/promises";
 import type { BlockStatement } from "@babel/types";
 import { parse } from "@babel/parser";
 
-import { writeIL, Opcodes, Registers, type File, type Expression } from "./libs/il.js";
+import {
+  writeIL,
+  Opcodes,
+  Registers,
+  type File,
+  type Expression,
+} from "./libs/il.js";
 import type { Configuration } from "./libs/types.js";
 
 import { parseAssignmentExpression } from "./parsers/AssignmentExpression.js";
@@ -13,12 +19,12 @@ import { parseCallExpression } from "./parsers/CallExpression.js";
 const il: File = {};
 
 const compilerOptions: Configuration = {
-  firstValueLocation: 34,
-  secondValueLocation: 35,
-  thirdValueLocation: 36,
+  firstValueLocation: Registers.r29,
+  secondValueLocation: Registers.r30,
+  thirdValueLocation: Registers.r31,
 
   tempMemoryValueMethod: "stack",
-  tempMemoryValueLocation: 1024
+  tempMemoryValueLocation: 1024,
 };
 
 if (process.env.NODE_ENV != "production") {
@@ -30,10 +36,11 @@ if (process.env.NODE_ENV != "production") {
 
 const file = await readFile(process.argv[2], "utf8");
 const parsedFile = parse(file, {
-  sourceType: "module"
+  sourceType: "module",
 });
 
-if (process.env.NODE_ENV != "production") console.log(" - Converting from JS lex to compiler object");
+if (process.env.NODE_ENV != "production")
+  console.log(" - Converting from JS lex to compiler object");
 
 function parseBlock(functionName: string, block: BlockStatement) {
   const ilData: Expression[] = [];
@@ -47,8 +54,9 @@ function parseBlock(functionName: string, block: BlockStatement) {
 
       case "FunctionDeclaration": {
         const functionName = element.id?.name;
-        if (functionName == undefined) throw new Error("Function name can't be undefined");
-  
+        if (functionName == undefined)
+          throw new Error("Function name can't be undefined");
+
         parseBlock(functionName, element.body);
         break;
       }
@@ -59,9 +67,9 @@ function parseBlock(functionName: string, block: BlockStatement) {
           arguments: [
             {
               type: "register",
-              value: Registers.c1
-            }
-          ]
+              value: Registers.c1,
+            },
+          ],
         });
 
         break;
@@ -75,7 +83,9 @@ function parseBlock(functionName: string, block: BlockStatement) {
         } else if (element.expression.type == "AssignmentExpression") {
           parseAssignmentExpression(element, ilData, compilerOptions);
         } else {
-          throw new Error("Unknown expression statement: " + element.expression.type);
+          throw new Error(
+            "Unknown expression statement: " + element.expression.type,
+          );
         }
 
         break;
@@ -92,13 +102,16 @@ for (const element of parsedFile.program.body) {
 
     case "FunctionDeclaration": {
       const functionName = element.id?.name;
-      if (functionName == undefined) throw new Error("Function name can't be undefined");
+      if (functionName == undefined)
+        throw new Error("Function name can't be undefined");
 
       parseBlock(functionName, element.body);
       break;
     }
   }
 }
+
+console.log(JSON.stringify(il, null, 2));
 
 if (process.env.NODE_ENV != "production") console.log(" - Compiling");
 const data = writeIL(il);
