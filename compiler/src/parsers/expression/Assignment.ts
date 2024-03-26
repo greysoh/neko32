@@ -1,10 +1,10 @@
 import type { ExpressionStatement, AssignmentExpression, MemberExpression, NumericLiteral, Identifier } from "@babel/types";
-import { Opcodes, type Expression, Registers } from "../libs/il.js";
+import { Opcodes, type Expression, Registers } from "../../libs/il.js";
 
-import { CompilerNotImplementedError } from "../libs/todo!.js";
-import { parseBinaryExpression } from "./BinaryExpression.js";
+import { CompilerNotImplementedError } from "../../libs/todo!.js";
+import { parseBinaryExpression } from "./Binary.js";
 
-import type { Configuration } from "../libs/types.js";
+import type { Configuration } from "../../libs/types.js";
 
 export function parseAssignmentExpression(element: ExpressionStatement, ilData: Expression[], configuration: Configuration): void {
   const expression: AssignmentExpression = element.expression as AssignmentExpression;

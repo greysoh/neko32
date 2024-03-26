@@ -1,8 +1,8 @@
 import type { ExpressionStatement, BinaryExpression } from "@babel/types";
-import { Opcodes, type Expression } from "../libs/il.js";
+import { Opcodes, type Expression } from "../../libs/il.js";
 
-import { parseMemberExpression } from "./MemberExpression.js";
-import type { Configuration } from "../libs/types.js";
+import { parseMemberExpression } from "./Member.js";
+import type { Configuration } from "../../libs/types.js";
 
 export function parseBinaryExpression(
   element: ExpressionStatement,

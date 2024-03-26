@@ -5,7 +5,7 @@ import { parse } from "@babel/parser";
 import { writeIL, Registers, type File } from "./libs/il.js";
 import type { Configuration } from "./libs/types.js";
 
-import { parseBlock } from "./ParseBlock.js";
+import { parseBlock } from "./parsers/ParseBlock.js";
 
 const il: File = {};
 
@@ -20,7 +20,8 @@ const compilerOptions: Configuration = {
 
 if (process.env.NODE_ENV != "production") {
   console.log("Neko Compiler");
-  console.log("WARN: in testing phase, don't use in production!");
+  console.log("====================");
+  console.log("WARN: in testing phase, don't use in production!\n");
 
   console.log(" - Lexifying JS");
 }
@@ -30,8 +31,7 @@ const parsedFile = parse(file, {
   sourceType: "module",
 });
 
-if (process.env.NODE_ENV != "production")
-  console.log(" - Converting from JS lex to compiler object");
+if (process.env.NODE_ENV != "production") console.log(" - Compiling");
 
 for (const element of parsedFile.program.body) {
   switch (element.type) {
@@ -50,10 +50,11 @@ for (const element of parsedFile.program.body) {
   }
 }
 
-console.log(JSON.stringify(il, null, 2));
-
-if (process.env.NODE_ENV != "production") console.log(" - Compiling");
+if (process.env.NODE_ENV != "production") console.log(" - Assembling");
 const data = writeIL(il);
 
+if (process.env.NODE_ENV != "production")
+  console.log(JSON.stringify(il, null, 2));
 if (process.env.NODE_ENV != "production") console.log(" - Writing file");
+
 await writeFile("./a.out.bin", data);

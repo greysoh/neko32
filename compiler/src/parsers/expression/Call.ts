@@ -2,8 +2,8 @@ import { strict as assert } from "node:assert";
 
 import type { CallExpression, ExpressionStatement } from "@babel/types";
 
-import { Opcodes, type Expression } from "../libs/il.js";
-import type { Configuration } from "../libs/types.js";
+import { Opcodes, type Expression } from "../../libs/il.js";
+import type { Configuration } from "../../libs/types.js";
 
 export function parseCallExpression(element: ExpressionStatement, ilData: Expression[], configuration: Configuration): void {
   const expression: CallExpression = element.expression as CallExpression;

@@ -1,11 +1,11 @@
 import type { BlockStatement } from "@babel/types";
 
-import { Registers, Opcodes, type File, type Expression } from "./libs/il.js";
-import type { Configuration } from "./libs/types.js";
+import { Registers, Opcodes, type File, type Expression } from "../libs/il.js";
+import type { Configuration } from "../libs/types.js";
 
-import { parseAssignmentExpression } from "./parsers/AssignmentExpression.js";
-import { parseMemberExpression } from "./parsers/MemberExpression.js";
-import { parseCallExpression } from "./parsers/CallExpression.js";
+import { parseAssignmentExpression } from "./expression/Assignment.js";
+import { parseMemberExpression } from "./expression/Member.js";
+import { parseCallExpression } from "./expression/Call.js";
 
 export function parseBlock(
   functionName: string,
@@ -28,6 +28,11 @@ export function parseBlock(
           throw new Error("Function name can't be undefined");
 
         parseBlock(functionName, element.body, il, compilerOptions);
+        break;
+      }
+
+      case "IfStatement": {
+        console.log(element);
         break;
       }
 
