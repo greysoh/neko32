@@ -2,12 +2,29 @@ import { readFile, writeFile } from "node:fs/promises";
 
 import { parse } from "@babel/parser";
 
-import { writeIL, Registers, type File } from "./libs/il.js";
+import { writeIL, Registers, Opcodes, type File } from "./libs/il.js";
 import type { Configuration } from "./libs/types.js";
 
 import { parseBlock } from "./parsers/ParseBlock.js";
 
-const il: File = {};
+// FIXME: This is a hacky workaround to if statements being out of order, before main is defined
+const il: File = {
+  "999999": [
+    {
+      opcode: Opcodes.REW,
+      arguments: [
+        {
+          type: "func",
+          value: "main",
+        },
+        {
+          type: "register",
+          value: 0,
+        },
+      ],
+    },
+  ],
+};
 
 const compilerOptions: Configuration = {
   firstValueLocation: Registers.r29,
@@ -19,8 +36,7 @@ const compilerOptions: Configuration = {
 };
 
 if (process.env.NODE_ENV != "production") {
-  console.log("Neko Compiler");
-  console.log("====================");
+  console.log("necc is running...");
   console.log("WARN: in testing phase, don't use in production!\n");
 
   console.log(" - Lexifying JS");
@@ -53,8 +69,7 @@ for (const element of parsedFile.program.body) {
 if (process.env.NODE_ENV != "production") console.log(" - Assembling");
 const data = writeIL(il);
 
-if (process.env.NODE_ENV != "production")
-  console.log(JSON.stringify(il, null, 2));
 if (process.env.NODE_ENV != "production") console.log(" - Writing file");
 
+console.log(JSON.stringify(il, null, 2), data);
 await writeFile("./a.out.bin", data);

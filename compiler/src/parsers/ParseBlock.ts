@@ -7,6 +7,8 @@ import { parseAssignmentExpression } from "./expression/Assignment.js";
 import { parseMemberExpression } from "./expression/Member.js";
 import { parseCallExpression } from "./expression/Call.js";
 
+import { parseIfStatement } from "./statement/If.js";
+
 export function parseBlock(
   functionName: string,
   block: BlockStatement,
@@ -32,7 +34,7 @@ export function parseBlock(
       }
 
       case "IfStatement": {
-        console.log(element);
+        parseIfStatement(element, il, ilData, compilerOptions);
         break;
       }
 

@@ -1,8 +1,9 @@
 import type { ExpressionStatement, BinaryExpression } from "@babel/types";
-import { Opcodes, type Expression } from "../../libs/il.js";
 
-import { parseMemberExpression } from "./Member.js";
+import { CompilerNotImplementedError } from "../../libs/todo!.js";
+import { Opcodes, type Expression } from "../../libs/il.js";
 import type { Configuration } from "../../libs/types.js";
+import { parseMemberExpression } from "./Member.js";
 
 export function parseBinaryExpression(
   element: ExpressionStatement,
@@ -385,6 +386,90 @@ export function parseBinaryExpression(
           {
             type: "register",
             value: configuration.secondValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.thirdValueLocation,
+          },
+        ],
+      });
+
+      break;
+    }
+
+    case "==": {
+      throw new CompilerNotImplementedError(
+        "Non-absolute checking (==) is not supported. Please use absolute checking (===) instead.",
+      );
+    }
+
+    case "!=": {
+      throw new CompilerNotImplementedError(
+        "Non-absolute checking (!=) is not supported. Please use absolute checking (!==) instead.",
+      );
+    }
+
+    case "===": {
+      ilData.push({
+        opcode: Opcodes.EQL,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.secondValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.thirdValueLocation,
+          },
+        ],
+      });
+
+      break;
+    }
+
+    case "!==": {
+      ilData.push({
+        opcode: Opcodes.EQL,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.secondValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.thirdValueLocation,
+          },
+        ],
+      });
+
+      ilData.push({
+        opcode: Opcodes.INV,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.thirdValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.firstValueLocation,
+          },
+        ],
+      });
+
+      ilData.push({
+        opcode: Opcodes.RMV,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation,
           },
           {
             type: "register",
