@@ -21,17 +21,19 @@ const compilerOptions: Configuration = {
   tempMemoryValueLocation: 1024
 };
 
-console.log("Neko Compiler");
-console.log("WARN: in testing phase, don't use in production!");
+if (process.env.NODE_ENV != "production") {
+  console.log("Neko Compiler");
+  console.log("WARN: in testing phase, don't use in production!");
 
-console.log(" - Lexifying");
+  console.log(" - Lexifying JS");
+}
 
 const file = await readFile(process.argv[2], "utf8");
 const parsedFile = parse(file, {
   sourceType: "module"
 });
 
-console.log(" - Converting from lex to compiler object");
+if (process.env.NODE_ENV != "production") console.log(" - Converting from JS lex to compiler object");
 
 function parseBlock(functionName: string, block: BlockStatement) {
   const ilData: Expression[] = [];
@@ -98,8 +100,8 @@ for (const element of parsedFile.program.body) {
   }
 }
 
-console.log(" - Compiling");
+if (process.env.NODE_ENV != "production") console.log(" - Compiling");
 const data = writeIL(il);
 
-console.log(" - Writing file");
+if (process.env.NODE_ENV != "production") console.log(" - Writing file");
 await writeFile("./a.out.bin", data);
