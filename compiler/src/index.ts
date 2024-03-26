@@ -1,20 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 
-import type { BlockStatement } from "@babel/types";
 import { parse } from "@babel/parser";
 
-import {
-  writeIL,
-  Opcodes,
-  Registers,
-  type File,
-  type Expression,
-} from "./libs/il.js";
+import { writeIL, Registers, type File } from "./libs/il.js";
 import type { Configuration } from "./libs/types.js";
 
-import { parseAssignmentExpression } from "./parsers/AssignmentExpression.js";
-import { parseMemberExpression } from "./parsers/MemberExpression.js";
-import { parseCallExpression } from "./parsers/CallExpression.js";
+import { parseBlock } from "./ParseBlock.js";
 
 const il: File = {};
 
@@ -42,58 +33,6 @@ const parsedFile = parse(file, {
 if (process.env.NODE_ENV != "production")
   console.log(" - Converting from JS lex to compiler object");
 
-function parseBlock(functionName: string, block: BlockStatement) {
-  const ilData: Expression[] = [];
-  il[functionName] = ilData;
-
-  for (const element of block.body) {
-    switch (element.type) {
-      default: {
-        throw new Error("Unsupported element: " + element.type);
-      }
-
-      case "FunctionDeclaration": {
-        const functionName = element.id?.name;
-        if (functionName == undefined)
-          throw new Error("Function name can't be undefined");
-
-        parseBlock(functionName, element.body);
-        break;
-      }
-
-      case "ReturnStatement": {
-        ilData.push({
-          opcode: Opcodes.RET,
-          arguments: [
-            {
-              type: "register",
-              value: Registers.c1,
-            },
-          ],
-        });
-
-        break;
-      }
-
-      case "ExpressionStatement": {
-        if (element.expression.type == "CallExpression") {
-          parseCallExpression(element, ilData, compilerOptions);
-        } else if (element.expression.type == "MemberExpression") {
-          parseMemberExpression(element, ilData, compilerOptions);
-        } else if (element.expression.type == "AssignmentExpression") {
-          parseAssignmentExpression(element, ilData, compilerOptions);
-        } else {
-          throw new Error(
-            "Unknown expression statement: " + element.expression.type,
-          );
-        }
-
-        break;
-      }
-    }
-  }
-}
-
 for (const element of parsedFile.program.body) {
   switch (element.type) {
     default: {
@@ -105,7 +44,7 @@ for (const element of parsedFile.program.body) {
       if (functionName == undefined)
         throw new Error("Function name can't be undefined");
 
-      parseBlock(functionName, element.body);
+      parseBlock(functionName, element.body, il, compilerOptions);
       break;
     }
   }
