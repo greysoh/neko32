@@ -54,11 +54,11 @@ export function parseBlock(
 
       case "ExpressionStatement": {
         if (element.expression.type == "CallExpression") {
-          parseCallExpression(element, ilData, compilerOptions);
+          parseCallExpression(element, il, ilData);
         } else if (element.expression.type == "MemberExpression") {
-          parseMemberExpression(element, ilData, compilerOptions);
+          parseMemberExpression(element, il, ilData, compilerOptions);
         } else if (element.expression.type == "AssignmentExpression") {
-          parseAssignmentExpression(element, ilData, compilerOptions);
+          parseAssignmentExpression(element, il, ilData, compilerOptions);
         } else {
           throw new Error(
             "Unknown expression statement: " + element.expression.type,

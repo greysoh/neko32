@@ -1,25 +1,47 @@
-import type { ExpressionStatement, AssignmentExpression, MemberExpression, NumericLiteral, Identifier } from "@babel/types";
-import { Opcodes, type Expression, Registers } from "../../libs/il.js";
+import type {
+  ExpressionStatement,
+  AssignmentExpression,
+  MemberExpression,
+  NumericLiteral,
+  Identifier,
+} from "@babel/types";
+
+import { Opcodes, type Expression, type File, Registers } from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
 import { parseBinaryExpression } from "./Binary.js";
 
 import type { Configuration } from "../../libs/types.js";
 
-export function parseAssignmentExpression(element: ExpressionStatement, ilData: Expression[], configuration: Configuration): void {
-  const expression: AssignmentExpression = element.expression as AssignmentExpression;
+export function parseAssignmentExpression(
+  element: ExpressionStatement,
+  il: File,
+  ilData: Expression[],
+  configuration: Configuration,
+): void {
+  const expression: AssignmentExpression =
+    element.expression as AssignmentExpression;
 
-  if (expression.operator != "=") throw new CompilerNotImplementedError("You must use '=' only for now");
+  if (expression.operator != "=")
+    throw new CompilerNotImplementedError("You must use '=' only for now");
 
-  if (expression.left.type != "MemberExpression") throw new CompilerNotImplementedError("Only member expressions for setting variables are supported right now");
+  if (expression.left.type != "MemberExpression")
+    throw new CompilerNotImplementedError(
+      "Only member expressions for setting variables are supported right now",
+    );
 
-  const expressionObject: MemberExpression = expression.left.object as MemberExpression;
-  const expressionValue: NumericLiteral = expression.left.property as NumericLiteral;
+  const expressionObject: MemberExpression = expression.left
+    .object as MemberExpression;
+  const expressionValue: NumericLiteral = expression.left
+    .property as NumericLiteral;
 
   const sourceCallerData: Identifier = expressionObject.object as Identifier;
   const destCallerData: Identifier = expressionObject.property as Identifier;
 
-  if (sourceCallerData.name != "CPU") throw new CompilerNotImplementedError("Variables are currently not supported right now");
+  if (sourceCallerData.name != "CPU")
+    throw new CompilerNotImplementedError(
+      "Variables are currently not supported right now",
+    );
 
   // Parse right sided expression
   let outputDataRegAddr: number = -1;
@@ -30,21 +52,26 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
       arguments: [
         {
           type: "u32",
-          value: expression.right.value
+          value: expression.right.value,
         },
         {
           type: "register",
-          value: configuration.firstValueLocation
-        }
-      ]
+          value: configuration.firstValueLocation,
+        },
+      ],
     });
 
     outputDataRegAddr = configuration.firstValueLocation;
   } else if (expression.right.type == "BinaryExpression") {
-    parseBinaryExpression({
-      type: "ExpressionStatement",
-      expression: expression.right
-    }, ilData, configuration);
+    parseBinaryExpression(
+      {
+        type: "ExpressionStatement",
+        expression: expression.right,
+      },
+      il,
+      ilData,
+      configuration,
+    );
 
     outputDataRegAddr = configuration.firstValueLocation;
   } else {
@@ -57,13 +84,13 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
       arguments: [
         {
           type: "register",
-          value: outputDataRegAddr
+          value: outputDataRegAddr,
         },
         {
           type: "register",
-          value: expressionValue.value
-        }
-      ]
+          value: expressionValue.value,
+        },
+      ],
     });
   } else if (destCallerData.name == "memory") {
     // Insurance!
@@ -72,13 +99,13 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
       arguments: [
         {
           type: "register",
-          value: outputDataRegAddr
+          value: outputDataRegAddr,
         },
         {
           type: "register",
-          value: configuration.firstValueLocation
-        }
-      ]
+          value: configuration.firstValueLocation,
+        },
+      ],
     });
 
     ilData.push({
@@ -86,13 +113,13 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
       arguments: [
         {
           type: "u32",
-          value: expressionValue.value
+          value: expressionValue.value,
         },
         {
           type: "register",
-          value: configuration.secondValueLocation
-        }
-      ]
+          value: configuration.secondValueLocation,
+        },
+      ],
     });
 
     ilData.push({
@@ -100,13 +127,13 @@ export function parseAssignmentExpression(element: ExpressionStatement, ilData: 
       arguments: [
         {
           type: "register",
-          value: configuration.firstValueLocation
+          value: configuration.firstValueLocation,
         },
         {
           type: "register",
-          value: configuration.secondValueLocation
-        }
-      ]
+          value: configuration.secondValueLocation,
+        },
+      ],
     });
   } else {
     throw new Error("Unknown element on CPU");

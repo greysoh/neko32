@@ -1,12 +1,15 @@
 import type { ExpressionStatement, BinaryExpression } from "@babel/types";
 
+import { Opcodes, type Expression, type File } from "../../libs/il.js";
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
-import { Opcodes, type Expression } from "../../libs/il.js";
 import type { Configuration } from "../../libs/types.js";
+
+import { STDType1Entries } from "../../std-type1/index.js";
 import { parseMemberExpression } from "./Member.js";
 
 export function parseBinaryExpression(
   element: ExpressionStatement,
+  il: File, 
   ilData: Expression[],
   configuration: Configuration,
 ): void {
@@ -18,6 +21,7 @@ export function parseBinaryExpression(
         type: "ExpressionStatement",
         expression: expression.left,
       },
+      il,
       ilData,
       configuration,
     );
@@ -27,6 +31,7 @@ export function parseBinaryExpression(
         type: "ExpressionStatement",
         expression: expression.left,
       },
+      il,
       ilData,
       configuration,
     );
@@ -46,21 +51,16 @@ export function parseBinaryExpression(
     });
   }
 
-  // TODO: Refactor to use stack instead of registers.
-  // This can cause collisions with certain cases in duplicate binary expressions
-
   if (expression.right.type == "MemberExpression") {
-    // We need to get out of the way!
+    if (!il["loadU8ToU32"]) STDType1Entries.loadU8ToU32(il, configuration);
+    if (!il["loadU32ToU8"]) STDType1Entries.loadU32ToU8(il, configuration);
+
     ilData.push({
-      opcode: Opcodes.RMV,
+      opcode: Opcodes.FUN,
       arguments: [
         {
-          type: "register",
-          value: configuration.firstValueLocation,
-        },
-        {
-          type: "register",
-          value: configuration.thirdValueLocation,
+          type: "func",
+          value: "u32ToU8",
         },
       ],
     });
@@ -70,6 +70,7 @@ export function parseBinaryExpression(
         type: "ExpressionStatement",
         expression: expression.right,
       },
+      il,
       ilData,
       configuration,
     );
@@ -89,33 +90,24 @@ export function parseBinaryExpression(
     });
 
     ilData.push({
-      opcode: Opcodes.RMV,
+      opcode: Opcodes.FUN,
       arguments: [
         {
-          type: "register",
-          value: configuration.thirdValueLocation,
-        },
-        {
-          type: "register",
-          value: configuration.firstValueLocation,
+          type: "func",
+          value: "u8ToU32",
         },
       ],
     });
   } else if (expression.right.type == "BinaryExpression") {
-    // FIXME: If you "stack" these, it *will* cause data loss.
-    // It should be the same amount of CPU cycles if we use the stack.
-
-    // We need to get out of the way!
+    if (!il["loadU8ToU32"]) STDType1Entries.loadU8ToU32(il, configuration);
+    if (!il["loadU32ToU8"]) STDType1Entries.loadU32ToU8(il, configuration);
+    
     ilData.push({
-      opcode: Opcodes.RMV,
+      opcode: Opcodes.FUN,
       arguments: [
         {
-          type: "register",
-          value: configuration.firstValueLocation,
-        },
-        {
-          type: "register",
-          value: configuration.thirdValueLocation,
+          type: "func",
+          value: "u32ToU8",
         },
       ],
     });
@@ -125,6 +117,7 @@ export function parseBinaryExpression(
         type: "ExpressionStatement",
         expression: expression.right,
       },
+      il,
       ilData,
       configuration,
     );
@@ -144,17 +137,18 @@ export function parseBinaryExpression(
     });
 
     ilData.push({
-      opcode: Opcodes.RMV,
+      opcode: Opcodes.SPE,
       arguments: [
-        {
-          type: "register",
-          value: configuration.thirdValueLocation,
-        },
         {
           type: "register",
           value: configuration.firstValueLocation,
         },
       ],
+    });
+
+    ilData.push({
+      opcode: Opcodes.SPO,
+      arguments: [],
     });
   } else if (expression.right.type == "NumericLiteral") {
     ilData.push({

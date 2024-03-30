@@ -124,7 +124,7 @@ export function writeIL(file: File): Uint8Array {
           expressionBuilt.push(...toU32(argument.value));
         } else if (argument.type == "func") {
           if (typeof argument.value != "string") throw new Error("func should be a string");
-          if (!file[argument.value]) throw new Error("could not find the function");
+          if (!file[argument.value]) throw new Error(`could not find the function: '${argument.value}'`);
 
           expressionBuilt.push(0, 0, 0, 0);
           positionsToFigureOut[data.length + expressionBuilt.length - 2] = argument.value;

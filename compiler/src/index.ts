@@ -27,9 +27,10 @@ const il: File = {
 };
 
 const compilerOptions: Configuration = {
-  firstValueLocation: Registers.r29,
-  secondValueLocation: Registers.r30,
-  thirdValueLocation: Registers.r31,
+  firstValueLocation: Registers.r28,
+  secondValueLocation: Registers.r29,
+  thirdValueLocation: Registers.r30,
+  fourthValueLocation: Registers.r31,
 
   tempMemoryValueMethod: "stack",
   tempMemoryValueLocation: 1024,
@@ -67,9 +68,9 @@ for (const element of parsedFile.program.body) {
 }
 
 if (process.env.NODE_ENV != "production") console.log(" - Assembling");
+console.log(il);
 const data = writeIL(il);
 
 if (process.env.NODE_ENV != "production") console.log(" - Writing file");
 
-console.log(JSON.stringify(il, null, 2), data);
 await writeFile("./a.out.bin", data);

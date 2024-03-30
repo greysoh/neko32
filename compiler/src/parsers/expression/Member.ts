@@ -1,10 +1,10 @@
-import type { ExpressionStatement, Identifier, MemberExpression, NumberLiteral, NumericLiteral } from "@babel/types";
-import { Opcodes, type Expression, Registers } from "../../libs/il.js";
+import type { ExpressionStatement, Identifier, MemberExpression, NumericLiteral } from "@babel/types";
+import { type Expression, type File, Opcodes, Registers } from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
 import type { Configuration } from "../../libs/types.js";
 
-export function parseMemberExpression(element: ExpressionStatement, ilData: Expression[], configuration: Configuration): void {
+export function parseMemberExpression(element: ExpressionStatement, il: File, ilData: Expression[], configuration: Configuration): void {
   const expression: MemberExpression = element.expression as MemberExpression;
 
   const expressionObject: MemberExpression = expression.object as MemberExpression;
