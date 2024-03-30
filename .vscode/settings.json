@@ -1,13 +1,11 @@
 {
-    "[rust]": {
-      "editor.tabSize": 4
-    },
+  "[rust]": {
+    "editor.tabSize": 4
+  },
 
-    "[customasm]": {
-      "editor.tabSize": 4
-    },
-    
-    "rust-analyzer.linkedProjects": [
-      "./cpu/Cargo.toml"
-    ]
+  "[customasm]": {
+    "editor.tabSize": 4
+  },
+
+  "rust-analyzer.linkedProjects": ["./cpu/Cargo.toml"]
 }
