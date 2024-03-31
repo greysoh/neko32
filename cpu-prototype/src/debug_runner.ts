@@ -185,6 +185,10 @@ const commands: Command[] = [
 ];
 
 for await (const line of readline) {
+  if (line.trim() == '') {
+    process.stdout.write('$ ');
+    continue;
+  }
   const splitCommand = line.split(' ');
 
   let command =
@@ -195,7 +199,7 @@ for await (const line of readline) {
   if (!command) {
     console.log("Unknown command. Run 'help' to get a list of all commands.");
   } else {
-    command.run(splitCommand);
+    await command.run(splitCommand);
   }
 
   process.stdout.write('$ ');
