@@ -182,8 +182,17 @@ for (const potentialFunctionIndex in potentialFunctions) {
 
   const nextFunction = nextFunctionIndex >= potentialFunctions.length ? rawInstructions.length : potentialFunctions[nextFunctionIndex];
 
-  for (let functionIndex = potentialFunction; functionIndex < nextFunction; functionIndex++) {
+  for (let functionIndex = potentialFunction; functionIndex <= nextFunction; functionIndex++) {
+    // FIXME: hack fixes. pls fix properly
+    if (potentialFunction - functionIndex == 0 && potentialFunction != 0) continue;
+
     const instruction = rawInstructions[functionIndex];
+
+    if (!instruction) {
+      console.error("FIXME: Instruction is undefined");
+      continue;
+    }
+
     functionTrees[functionTreeName].push(instruction);
   }
 }
