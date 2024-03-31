@@ -8,16 +8,15 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "cd out && node --enable-source-maps index.js",
-    "dev": "nodemon --watch src --ext ts,js,mjs,json --exec \"tsc && cd out && node --enable-source-maps index.js\""
+    "dev": "nodemon --watch src --ext ts,js,mjs,json --exec \"tsc && cd out && node --enable-source-maps index.js\"",
+    "debug": "npm run build; node ./out/debug_runner.js"
   },
   "keywords": [],
   "author": "greysoh",
   "license": "BSD-3-Clause",
   "devDependencies": {
+    "@types/node": "^20.12.2",
     "nodemon": "^3.0.3",
     "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "@types/node": "^20.11.25"
   }
 }
