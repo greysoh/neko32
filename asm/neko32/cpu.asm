@@ -11,7 +11,7 @@
     equals  {registerEq0: register} {registerEq1: register} {registerOutput: register} => 0x03 @registerEq0 @registerEq1 @registerOutput
     invert  {registerToInvert: register} {registerOutput: register} => 0x04 @registerToInvert @registerOutput
     grt_thn {registerEq0: register} {registerEq1: register} {registerOutput: register} => 0x05 @registerEq0 @registerEq1 @registerOutput
-    
+
     ; Memory
     reg_wri {value: u32} {register: register} => 0x06 @value @register
     mem_wri {value: register} {memoryAddr: register} => 0x07 @value @memoryAddr
