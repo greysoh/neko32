@@ -32,14 +32,14 @@ export enum Opcodes {
   MOD,
 }
 
-type Instruction = {
+export type Instruction = {
   opcode: number;
 
   arguments: number[];
   argumentLen: number;
 };
 
-function getInstructionLength(instruction: number): number {
+export function getInstructionLength(instruction: number): number {
   if (instruction == Opcodes.NOP || instruction == Opcodes.SPO) return 0;
 
   if (instruction == Opcodes.EQL || instruction == Opcodes.GHT) return 3;

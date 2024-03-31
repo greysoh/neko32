@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 import { Memory, MMIOCallbackWrite } from "./Core/Memory.js";
-import { CPU } from "./Core/CPU.js";
+import { type Instruction, CPU, getInstructionLength } from "./Core/CPU.js";
 
 enum RealOpcodes {
   nop = 0,
@@ -139,32 +139,79 @@ memory.configureMMIO(0, 4094, (event, address, value) => {
 
 console.log("[main] Starting decompilation");
 
-let outputAssembly = '#include "neko32/cpu.asm"\n\n; Decompiled code. Be advised. This code may not compile.\n\nmain:\n';
+const rawInstructions: Instruction[] = [];
+const potentialFunctions = [0]; // NOTE: This could be a Set(), but I don't know how to do that, and I want this done. PRs welcome.
+
+let outputAssembly = '#include "neko32/cpu.asm"\n\n; Decompiled code. Be advised. This code may not compile.\n\n';
 
 while (cpu.registers[0] < file.length) {
   const fetchedInstruction = cpu.fetch();
   const decodedInstruction = cpu.decode(fetchedInstruction);
 
-  const opcodeName = RealOpcodes[decodedInstruction.opcode]
+  if (decodedInstruction.opcode == RealOpcodes.funct && decodedInstruction.arguments[0] < file.length) {
+    // Getting the raw value on where the program itself jumps to doesn't work because we need where the array position is.
+    // FIXME: So, we have to calculate it manually. However this is slow, by a lot. It would be faster potentially if we move this
+    // calculation out of here.
 
-  let newInstructionLine = opcodeName + " ";
+    let memoryPosition = 0;
+    let arrayHops = -1;
 
-  for (const argumentIndex in decodedInstruction.arguments) {
-    const argument = decodedInstruction.arguments[argumentIndex];
-    const argumentType = functionArguments[opcodeName][argumentIndex];
-    
-    if (argumentType == "register") {
-      newInstructionLine += RealRegisters[argument] + " ";
-    } else if (argumentType == "u32") {
-      newInstructionLine += argument + " ";
+    while (memoryPosition < decodedInstruction.arguments[0]) {
+      arrayHops += 1;
+      memoryPosition += getInstructionLength(file[memoryPosition]) + 1;
     }
+
+    if (!potentialFunctions.includes(arrayHops)) potentialFunctions.push(arrayHops);
   }
 
-  newInstructionLine += "\n";
-  outputAssembly += newInstructionLine;
-
+  rawInstructions.push(decodedInstruction);
   cpu.registers[0] += decodedInstruction.argumentLen + 1;
 };
+
+potentialFunctions.sort();
+const functionTrees: Record<string, Instruction[]> = {};
+
+console.log("[main] Resolving functions");
+
+for (const potentialFunctionIndex in potentialFunctions) {
+  const functionTreeName = "estimated_dis_" + potentialFunctionIndex;
+  functionTrees[functionTreeName] = [];
+  
+  const potentialFunction = potentialFunctions[potentialFunctionIndex];
+  const nextFunctionIndex = parseInt(potentialFunctionIndex) + 1;
+
+  const nextFunction = nextFunctionIndex >= potentialFunctions.length ? rawInstructions.length : potentialFunctions[nextFunctionIndex];
+
+  for (let functionIndex = potentialFunction; functionIndex < nextFunction; functionIndex++) {
+    const instruction = rawInstructions[functionIndex];
+    functionTrees[functionTreeName].push(instruction);
+  }
+}
+
+for (const treeIndex of Object.keys(functionTrees)) {
+  const tree = functionTrees[treeIndex];
+  outputAssembly += treeIndex + ":\n";
+
+  for (const decodedInstruction of tree) {
+    const opcodeName = RealOpcodes[decodedInstruction.opcode];
+
+    let newInstructionLine = opcodeName + " ";
+
+    for (const argumentIndex in decodedInstruction.arguments) {
+      const argument = decodedInstruction.arguments[argumentIndex];
+      const argumentType = functionArguments[opcodeName][argumentIndex];
+    
+      if (argumentType == "register") {
+        newInstructionLine += RealRegisters[argument] + " ";
+      } else if (argumentType == "u32") {
+        newInstructionLine += argument + " ";
+      }
+    }
+
+    newInstructionLine += "\n";
+    outputAssembly += newInstructionLine;
+  }
+}
 
 console.log("[main] Writing file...");
 
