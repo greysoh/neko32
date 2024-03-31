@@ -45,7 +45,7 @@ function getInstructionLength(instruction: number): number {
   if (instruction == Opcodes.EQL || instruction == Opcodes.GHT) return 3;
   if (instruction >= Opcodes.MEW && instruction <= Opcodes.MCP) return 2;
 
-  if (instruction == Opcodes.SPU || instruction == Opcodes.SPO) return 1;
+  if (instruction == Opcodes.SPU || instruction == Opcodes.SPE) return 1;
   if (instruction >= Opcodes.LSB && instruction <= Opcodes.MOD) return 3;
 
   if (instruction == Opcodes.REW) return 5;
