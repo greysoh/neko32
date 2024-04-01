@@ -49,6 +49,7 @@ type Command = {
   usage: string;
   run: Function;
 };
+
 const commands: Command[] = [
   {
     name: "clear",
@@ -155,6 +156,14 @@ const commands: Command[] = [
     },
   },
   {
+    name: "stack_dump",
+    description: "dumps the contents of the stack. (starts from default stackpos, not the current stackpos)",
+    usage: "stack_dump",
+    run(_args: string[]) {
+      console.log(memory.getBulk(8192, 9999));
+    }
+  },
+  {
     name: "help",
     description: "prints this help message.",
     usage: "help [command]",
@@ -168,6 +177,7 @@ const commands: Command[] = [
         let commandid = commands.findIndex(
           el => el.name.toLowerCase() == args[1],
         );
+        
         let command = commands[commandid];
         console.log(`${command.name}: ${command.description}`);
         console.log(`usage: ${command.usage}`);
@@ -189,6 +199,7 @@ for await (const line of readline) {
     process.stdout.write("$ ");
     continue;
   }
+
   const splitCommand = line.split(" ");
 
   let command =
