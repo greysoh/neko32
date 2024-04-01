@@ -213,7 +213,7 @@ export class CPU {
           break;
         }
 
-        this.memory.set(this.registers[1], instruction.arguments[0]);
+        this.memory.set(this.registers[1], this.registers[instruction.arguments[0]]);
         this.registers[1]++;
 
         break;
@@ -230,6 +230,7 @@ export class CPU {
         this.registers[instruction.arguments[0]] = this.memory.get(
           this.registers[1],
         );
+        
         break;
       }
 
