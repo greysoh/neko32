@@ -10,7 +10,6 @@ import {
   Opcodes,
   type Expression,
   type File,
-  Registers,
 } from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
