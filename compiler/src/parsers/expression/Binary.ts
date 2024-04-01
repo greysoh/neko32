@@ -9,7 +9,7 @@ import { parseMemberExpression } from "./Member.js";
 
 export function parseBinaryExpression(
   element: ExpressionStatement,
-  il: File, 
+  il: File,
   ilData: Expression[],
   configuration: Configuration,
 ): void {
@@ -101,7 +101,7 @@ export function parseBinaryExpression(
   } else if (expression.right.type == "BinaryExpression") {
     if (!il["loadU8ToU32"]) STDType1Entries.loadU8ToU32(il, configuration);
     if (!il["loadU32ToU8"]) STDType1Entries.loadU32ToU8(il, configuration);
-    
+
     ilData.push({
       opcode: Opcodes.FUN,
       arguments: [

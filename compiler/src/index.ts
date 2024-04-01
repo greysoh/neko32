@@ -2,7 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 
 import { parse } from "@babel/parser";
 
-import { writeIL, Registers, Opcodes, type File } from "./libs/il.js";
+import { Opcodes, Registers, writeIL, type File } from "./libs/il.js";
 import type { Configuration } from "./libs/types.js";
 
 import { parseBlock } from "./parsers/ParseBlock.js";

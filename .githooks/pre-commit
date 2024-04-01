@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+./node_modules/.bin/prettier --ignore-unknown --write {cpu-prototype,compiler}/**/*.{ts,js}
+rustfmt cpu/**/*.rs
+exit 0

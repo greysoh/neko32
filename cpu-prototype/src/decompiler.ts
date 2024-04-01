@@ -81,36 +81,36 @@ type FunctionArgumentArray = ("u32" | "register")[];
 type FunctionArguments = Record<string, FunctionArgumentArray>;
 
 const functionArguments: FunctionArguments = {
-    "nop": [],
-    "return": ["register"],
-    "funct": ["u32"],
+  nop: [],
+  return: ["register"],
+  funct: ["u32"],
 
-    "equals": ["register", "register", "register"],
-    "invert": ["register", "register"],
-    "grt_thn": ["register", "register", "register"],
+  equals: ["register", "register", "register"],
+  invert: ["register", "register"],
+  grt_thn: ["register", "register", "register"],
 
-    "reg_wri": ["u32", "register"],
-    "mem_wri": ["register", "register"],
-    "reg_mov": ["register", "register"],
-    "mem_mov": ["register", "register"],
-    "mem_cpy": ["register", "register"],
+  reg_wri: ["u32", "register"],
+  mem_wri: ["register", "register"],
+  reg_mov: ["register", "register"],
+  mem_mov: ["register", "register"],
+  mem_cpy: ["register", "register"],
 
-    "stack_push": ["register"],
-    "stack_peek": ["register"],
-    "stack_pop": [],
+  stack_push: ["register"],
+  stack_peek: ["register"],
+  stack_pop: [],
 
-    "bit_left": ["register", "register", "register"],
-    "bit_right": ["register", "register", "register"],
-    "bit_not": ["register", "register"],
-    "bit_and": ["register", "register", "register"],
-    "bit_or": ["register", "register", "register"],
-    "bit_xor": ["register", "register", "register"],
+  bit_left: ["register", "register", "register"],
+  bit_right: ["register", "register", "register"],
+  bit_not: ["register", "register"],
+  bit_and: ["register", "register", "register"],
+  bit_or: ["register", "register", "register"],
+  bit_xor: ["register", "register", "register"],
 
-    "math_add": ["register", "register", "register"],
-    "math_sub": ["register", "register", "register"],
-    "math_mul": ["register", "register", "register"],
-    "math_div": ["register", "register", "register"],
-    "math_mod": ["register", "register", "register"]
+  math_add: ["register", "register", "register"],
+  math_sub: ["register", "register", "register"],
+  math_mul: ["register", "register", "register"],
+  math_div: ["register", "register", "register"],
+  math_mod: ["register", "register", "register"],
 };
 
 if (!process.argv[2]) {
@@ -142,13 +142,17 @@ console.log("[main] Starting decompilation");
 const rawInstructions: Instruction[] = [];
 const potentialFunctions = [0]; // NOTE: This could be a Set(), but I don't know how to do that, and I want this done. PRs welcome.
 
-let outputAssembly = '#include "neko32/cpu.asm"\n\n; Decompiled code. Be advised. This code may not compile.\n\n';
+let outputAssembly =
+  '#include "neko32/cpu.asm"\n\n; Decompiled code. Be advised. This code may not compile.\n\n';
 
 while (cpu.registers[0] < file.length) {
   const fetchedInstruction = cpu.fetch();
   const decodedInstruction = cpu.decode(fetchedInstruction);
 
-  if (decodedInstruction.opcode == RealOpcodes.funct && decodedInstruction.arguments[0] < file.length) {
+  if (
+    decodedInstruction.opcode == RealOpcodes.funct &&
+    decodedInstruction.arguments[0] < file.length
+  ) {
     // Getting the raw value on where the program itself jumps to doesn't work because we need where the array position is.
     // FIXME: So, we have to calculate it manually. However this is slow, by a lot. It would be faster potentially if we move this
     // calculation out of here.
@@ -161,12 +165,13 @@ while (cpu.registers[0] < file.length) {
       memoryPosition += getInstructionLength(file[memoryPosition]) + 1;
     }
 
-    if (!potentialFunctions.includes(arrayHops)) potentialFunctions.push(arrayHops);
+    if (!potentialFunctions.includes(arrayHops))
+      potentialFunctions.push(arrayHops);
   }
 
   rawInstructions.push(decodedInstruction);
   cpu.registers[0] += decodedInstruction.argumentLen + 1;
-};
+}
 
 potentialFunctions.sort();
 const functionTrees: Record<string, Instruction[]> = {};
@@ -176,15 +181,23 @@ console.log("[main] Resolving functions");
 for (const potentialFunctionIndex in potentialFunctions) {
   const functionTreeName = "estimated_dis_" + potentialFunctionIndex;
   functionTrees[functionTreeName] = [];
-  
+
   const potentialFunction = potentialFunctions[potentialFunctionIndex];
   const nextFunctionIndex = parseInt(potentialFunctionIndex) + 1;
 
-  const nextFunction = nextFunctionIndex >= potentialFunctions.length ? rawInstructions.length : potentialFunctions[nextFunctionIndex];
+  const nextFunction =
+    nextFunctionIndex >= potentialFunctions.length
+      ? rawInstructions.length
+      : potentialFunctions[nextFunctionIndex];
 
-  for (let functionIndex = potentialFunction; functionIndex <= nextFunction; functionIndex++) {
+  for (
+    let functionIndex = potentialFunction;
+    functionIndex <= nextFunction;
+    functionIndex++
+  ) {
     // FIXME: hack fixes. pls fix properly
-    if (potentialFunction - functionIndex == 0 && potentialFunction != 0) continue;
+    if (potentialFunction - functionIndex == 0 && potentialFunction != 0)
+      continue;
 
     const instruction = rawInstructions[functionIndex];
 
@@ -209,7 +222,7 @@ for (const treeIndex of Object.keys(functionTrees)) {
     for (const argumentIndex in decodedInstruction.arguments) {
       const argument = decodedInstruction.arguments[argumentIndex];
       const argumentType = functionArguments[opcodeName][argumentIndex];
-    
+
       if (argumentType == "register") {
         newInstructionLine += RealRegisters[argument] + " ";
       } else if (argumentType == "u32") {

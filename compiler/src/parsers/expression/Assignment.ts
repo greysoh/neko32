@@ -6,7 +6,12 @@ import type {
   Identifier,
 } from "@babel/types";
 
-import { Opcodes, type Expression, type File, Registers } from "../../libs/il.js";
+import {
+  Opcodes,
+  type Expression,
+  type File,
+  Registers,
+} from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
 import { parseBinaryExpression } from "./Binary.js";

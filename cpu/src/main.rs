@@ -27,7 +27,7 @@ fn main() {
     let mut memory: memory::Memory = memory::Memory::new(MEMORY_SIZE);
 
     let mapped_file = memory::MappedFile {
-        file: file_contents
+        file: file_contents,
     };
 
     memory.add_mmio_device(0, Box::new(mapped_file));
@@ -39,7 +39,7 @@ fn main() {
 
     loop {
         println!("solved value: {}", registers[6]);
-        
+
         cpu::tick(registers, &mut memory, &mut cpu_stack);
     }
 }
