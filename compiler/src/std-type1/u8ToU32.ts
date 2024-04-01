@@ -2,9 +2,8 @@ import { type Expression, type File, Opcodes, Registers } from "../libs/il.js";
 import type { Configuration } from "../libs/types";
 
 export function loadU8ToU32(il: File, configuration: Configuration) {
-  console.log("info: Loading std (type1) for u8 -> u32");
   if (il["loadU8ToU32"]) return;
-
+  
   const ilData: Expression[] = [];
 
   ilData.push({
@@ -37,6 +36,11 @@ export function loadU8ToU32(il: File, configuration: Configuration) {
     });
 
     ilData.push({
+      opcode: Opcodes.SPO,
+      arguments: [],
+    });
+
+    ilData.push({
       opcode: Opcodes.SPE,
       arguments: [
         {
@@ -44,11 +48,6 @@ export function loadU8ToU32(il: File, configuration: Configuration) {
           value: configuration.secondValueLocation,
         },
       ],
-    });
-
-    ilData.push({
-      opcode: Opcodes.SPO,
-      arguments: [],
     });
 
     ilData.push({
