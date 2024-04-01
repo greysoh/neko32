@@ -1,16 +1,20 @@
 export const MMIOCallbackRead = 0x00;
 export const MMIOCallbackWrite = 0x01;
 
-export type MMIOCallbackEvent = (event: number, address: number, value?: number) => number | undefined;
+export type MMIOCallbackEvent = (
+  event: number,
+  address: number,
+  value?: number,
+) => number | undefined;
 
 export class Memory {
   rawMemory: Uint8Array;
 
   mmioEvents: {
-    callback: MMIOCallbackEvent,
+    callback: MMIOCallbackEvent;
 
-    startPos: number,
-    endPos:   number
+    startPos: number;
+    endPos: number;
   }[];
 
   constructor(memoryBase: Uint8Array) {
@@ -19,17 +23,19 @@ export class Memory {
   }
 
   get(pos: number): number {
-    const mmioEventsSearch = this.mmioEvents.find((i) => i.startPos <= pos && i.endPos >= pos);
-    
+    const mmioEventsSearch = this.mmioEvents.find(
+      i => i.startPos <= pos && i.endPos >= pos,
+    );
+
     if (mmioEventsSearch) {
       const output = mmioEventsSearch.callback(MMIOCallbackRead, pos);
       if (!output) return 0;
-      
+
       return output;
     }
 
     // Safely handle out of bounds reads
-    if (this.rawMemory.length <= pos) return 0xFF;
+    if (this.rawMemory.length <= pos) return 0xff;
     return this.rawMemory[pos];
   }
 
@@ -44,8 +50,10 @@ export class Memory {
   }
 
   set(pos: number, value: number): void {
-    const mmioEventsSearch = this.mmioEvents.find((i) => i.startPos <= pos && i.endPos >= pos);
-    
+    const mmioEventsSearch = this.mmioEvents.find(
+      i => i.startPos <= pos && i.endPos >= pos,
+    );
+
     if (mmioEventsSearch) {
       mmioEventsSearch.callback(MMIOCallbackWrite, pos, value);
       return;
@@ -56,16 +64,20 @@ export class Memory {
 
   clear(resetMMIO?: boolean): void {
     if (resetMMIO) this.mmioEvents.splice(0, this.mmioEvents.length);
-    
+
     // FIXME: Let's hope the GC cleans this up....
     this.rawMemory = new Uint8Array(this.rawMemory.length);
   }
 
-  configureMMIO(startPos: number, endPos: number, callback: MMIOCallbackEvent): void {
+  configureMMIO(
+    startPos: number,
+    endPos: number,
+    callback: MMIOCallbackEvent,
+  ): void {
     this.mmioEvents.push({
       callback,
       startPos,
-      endPos
+      endPos,
     });
   }
 

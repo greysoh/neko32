@@ -13,26 +13,30 @@ struct MMIODevice {
 
 pub struct Memory {
     devices: Vec<MMIODevice>,
-    memory: Vec<u8>
+    memory: Vec<u8>,
 }
 
 impl Memory {
     pub fn new(memory_size: usize) -> Self {
         Memory {
             devices: Vec::new(),
-            memory: vec![0; memory_size]
+            memory: vec![0; memory_size],
         }
     }
 
     pub fn get(&mut self, position: u32) -> u8 {
         for mmio_device in &mut self.devices {
-            if mmio_device.position <= position && mmio_device.position + mmio_device.size as u32 >= position {
-                return mmio_device.device.read(position); // FIXME: mmio_device.size as u32 - 
+            if mmio_device.position <= position
+                && mmio_device.position + mmio_device.size as u32 >= position
+            {
+                return mmio_device.device.read(position); // FIXME: mmio_device.size as u32 -
             }
         }
 
         // Safely handle out of bounds reads
-        if self.memory.len() <= position as usize { return 0xFF; }
+        if self.memory.len() <= position as usize {
+            return 0xFF;
+        }
         return self.memory[position as usize];
     }
 
@@ -48,7 +52,9 @@ impl Memory {
 
     pub fn set(&mut self, position: u32, value: u8) {
         for mmio_device in &mut self.devices {
-            if mmio_device.position <= position && mmio_device.position + mmio_device.size as u32 >= position {
+            if mmio_device.position <= position
+                && mmio_device.position + mmio_device.size as u32 >= position
+            {
                 return mmio_device.device.write(position, value);
             }
         }
@@ -62,7 +68,7 @@ impl Memory {
         let real_mmio_device: MMIODevice = MMIODevice {
             device,
             position: start_pos,
-            size: dev_size
+            size: dev_size,
         };
 
         self.devices.push(real_mmio_device);
@@ -75,12 +81,14 @@ impl Memory {
 
 // File implementation for CPU
 pub struct MappedFile {
-    pub file: Vec<u8>
+    pub file: Vec<u8>,
 }
 
 impl Device for MappedFile {
     fn read(&mut self, address: u32) -> u8 {
-        if address >= self.file.len() as u32 { return 0; }
+        if address >= self.file.len() as u32 {
+            return 0;
+        }
 
         return self.file[address as usize];
     }

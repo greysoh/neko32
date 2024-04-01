@@ -1,20 +1,37 @@
-import type { ExpressionStatement, Identifier, MemberExpression, NumericLiteral } from "@babel/types";
-import { type Expression, type File, Opcodes, Registers } from "../../libs/il.js";
+import type {
+  ExpressionStatement,
+  Identifier,
+  MemberExpression,
+  NumericLiteral,
+} from "@babel/types";
+import {
+  type Expression,
+  type File,
+  Opcodes,
+  Registers,
+} from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
 import type { Configuration } from "../../libs/types.js";
 
-export function parseMemberExpression(element: ExpressionStatement, il: File, ilData: Expression[], configuration: Configuration): void {
+export function parseMemberExpression(
+  element: ExpressionStatement,
+  il: File,
+  ilData: Expression[],
+  configuration: Configuration,
+): void {
   const expression: MemberExpression = element.expression as MemberExpression;
 
-  const expressionObject: MemberExpression = expression.object as MemberExpression;
+  const expressionObject: MemberExpression =
+    expression.object as MemberExpression;
   const expressionValue: NumericLiteral = expression.property as NumericLiteral;
 
   const sourceCallerData: Identifier = expressionObject.object as Identifier;
   const destCallerData: Identifier = expressionObject.property as Identifier;
 
   if (sourceCallerData.type == "Identifier" && sourceCallerData.name == "CPU") {
-    if (destCallerData.type != "Identifier") throw new Error("Unsupported element for object");
+    if (destCallerData.type != "Identifier")
+      throw new Error("Unsupported element for object");
 
     if (destCallerData.name == "registers") {
       ilData.push({
@@ -22,13 +39,13 @@ export function parseMemberExpression(element: ExpressionStatement, il: File, il
         arguments: [
           {
             type: "register",
-            value: expressionValue.value
+            value: expressionValue.value,
           },
           {
             type: "register",
-            value: configuration.firstValueLocation
-          }
-        ]
+            value: configuration.firstValueLocation,
+          },
+        ],
       });
     } else if (destCallerData.name == "memory") {
       ilData.push({
@@ -36,13 +53,13 @@ export function parseMemberExpression(element: ExpressionStatement, il: File, il
         arguments: [
           {
             type: "u32",
-            value: expressionValue.value
+            value: expressionValue.value,
           },
           {
             type: "register",
-            value: configuration.firstValueLocation
-          }
-        ]
+            value: configuration.firstValueLocation,
+          },
+        ],
       });
 
       ilData.push({
@@ -50,13 +67,13 @@ export function parseMemberExpression(element: ExpressionStatement, il: File, il
         arguments: [
           {
             type: "register",
-            value: configuration.firstValueLocation
+            value: configuration.firstValueLocation,
           },
           {
             type: "register",
-            value: configuration.secondValueLocation
-          }
-        ]
+            value: configuration.secondValueLocation,
+          },
+        ],
       });
 
       ilData.push({
@@ -64,18 +81,20 @@ export function parseMemberExpression(element: ExpressionStatement, il: File, il
         arguments: [
           {
             type: "register",
-            value: configuration.secondValueLocation
+            value: configuration.secondValueLocation,
           },
           {
             type: "register",
-            value: configuration.firstValueLocation
-          }
-        ]
+            value: configuration.firstValueLocation,
+          },
+        ],
       });
     } else {
       throw new Error("Unknown element on CPU");
     }
   } else {
-    throw new CompilerNotImplementedError("Variables are not currently supported right now");
+    throw new CompilerNotImplementedError(
+      "Variables are not currently supported right now",
+    );
   }
 }
