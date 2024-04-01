@@ -157,11 +157,12 @@ const commands: Command[] = [
   },
   {
     name: "stack_dump",
-    description: "dumps the contents of the stack. (starts from default stackpos, not the current stackpos)",
+    description:
+      "dumps the contents of the stack. (starts from default stackpos, not the current stackpos)",
     usage: "stack_dump",
     run(_args: string[]) {
       console.log(memory.getBulk(8192, 9999));
-    }
+    },
   },
   {
     name: "help",
@@ -177,7 +178,7 @@ const commands: Command[] = [
         let commandid = commands.findIndex(
           el => el.name.toLowerCase() == args[1],
         );
-        
+
         let command = commands[commandid];
         console.log(`${command.name}: ${command.description}`);
         console.log(`usage: ${command.usage}`);
