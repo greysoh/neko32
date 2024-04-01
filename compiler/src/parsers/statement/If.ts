@@ -1,33 +1,33 @@
-import type { IfStatement } from "@babel/types";
+import type { IfStatement } from '@babel/types';
 
 import {
   Opcodes,
   Registers,
-  type File,
   type Expression,
-} from "../../libs/il.js";
+  type File,
+} from '../../libs/il.js';
 
-import { CompilerNotImplementedError } from "../../libs/todo!.js";
-import { getRandomInt } from "../../libs/getRandomInt.js";
-import type { Configuration } from "../../libs/types.js";
+import { getRandomInt } from '../../libs/getRandomInt.js';
+import { CompilerNotImplementedError } from '../../libs/todo!.js';
+import type { Configuration } from '../../libs/types.js';
 
-import { parseBinaryExpression } from "../expression/Binary.js";
-import { parseBlock } from "../ParseBlock.js";
+import { parseBinaryExpression } from '../expression/Binary.js';
+import { parseBlock } from '../ParseBlock.js';
 
 export function parseIfStatement(
   element: IfStatement,
   il: File,
   ilData: Expression[],
-  configuration: Configuration,
+  configuration: Configuration
 ): void {
-  if (element.test.type != "BinaryExpression")
+  if (element.test.type != 'BinaryExpression')
     throw new CompilerNotImplementedError(
-      "Expression type not implemented in if statement",
+      'Expression type not implemented in if statement'
     );
 
-  if (element.consequent.type != "BlockStatement")
+  if (element.consequent.type != 'BlockStatement')
     throw new CompilerNotImplementedError(
-      "You must use a block with if statements for now",
+      'You must use a block with if statements for now'
     );
 
   const newBranchID = getRandomInt(1_000_000, 9_999_999);
@@ -39,7 +39,7 @@ export function parseIfStatement(
     opcode: Opcodes.FUN,
     arguments: [
       {
-        type: "func",
+        type: 'func',
         value: `${newBranchID}`,
       },
     ],
@@ -47,11 +47,12 @@ export function parseIfStatement(
 
   parseBinaryExpression(
     {
-      type: "ExpressionStatement",
+      type: 'ExpressionStatement',
       expression: element.test,
     },
+    il,
     newBranch,
-    configuration,
+    configuration
   );
 
   // By default it will return if true, which isn't really what we want
@@ -61,11 +62,11 @@ export function parseIfStatement(
     opcode: Opcodes.INV,
     arguments: [
       {
-        type: "register",
+        type: 'register',
         value: configuration.firstValueLocation,
       },
       {
-        type: "register",
+        type: 'register',
         value: configuration.secondValueLocation,
       },
     ],
@@ -75,7 +76,7 @@ export function parseIfStatement(
     opcode: Opcodes.RET,
     arguments: [
       {
-        type: "register",
+        type: 'register',
         value: configuration.secondValueLocation,
       },
     ],
@@ -90,7 +91,7 @@ export function parseIfStatement(
     opcode: Opcodes.RET,
     arguments: [
       {
-        type: "register",
+        type: 'register',
         value: Registers.c1,
       },
     ],
