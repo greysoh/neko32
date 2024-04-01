@@ -62,11 +62,11 @@ export function loadU32ToU8(il: File, configuration: Configuration) {
       arguments: [
         {
           type: "register",
-          value: configuration.secondValueLocation,
+          value: configuration.thirdValueLocation,
         },
         {
           type: "register",
-          value: configuration.thirdValueLocation,
+          value: configuration.secondValueLocation,
         },
         {
           type: "register",
@@ -85,6 +85,48 @@ export function loadU32ToU8(il: File, configuration: Configuration) {
       ],
     });
   }
+
+  ilData.push({
+    opcode: Opcodes.REW,
+    arguments: [
+      {
+        type: "u32",
+        value: 255,
+      },
+      {
+        type: "register",
+        value: configuration.secondValueLocation,
+      },
+    ],
+  });
+
+  ilData.push({
+    opcode: Opcodes.AND,
+    arguments: [
+      {
+        type: "register",
+        value: configuration.firstValueLocation,
+      },
+      {
+        type: "register",
+        value: configuration.secondValueLocation,
+      },
+      {
+        type: "register",
+        value: configuration.thirdValueLocation,
+      },
+    ],
+  });
+
+  ilData.push({
+    opcode: Opcodes.SPU,
+    arguments: [
+      {
+        type: "register",
+        value: configuration.thirdValueLocation,
+      },
+    ],
+  });
 
   ilData.push({
     opcode: Opcodes.RET,
