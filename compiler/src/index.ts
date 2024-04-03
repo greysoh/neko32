@@ -70,7 +70,6 @@ for (const element of parsedFile.program.body) {
 }
 
 if (process.env.NODE_ENV != "production") console.log(" - Assembling");
-console.log(il);
 const data = writeIL(il);
 
 if (process.env.NODE_ENV != "production") console.log(" - Writing file");
