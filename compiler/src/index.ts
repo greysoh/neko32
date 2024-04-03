@@ -32,6 +32,8 @@ const compilerOptions: Configuration = {
   thirdValueLocation: Registers.r30,
   fourthValueLocation: Registers.r31,
 
+  cacheValueLocation: Registers.r27,
+
   tempMemoryValueMethod: "stack",
   tempMemoryValueLocation: 1024,
 };

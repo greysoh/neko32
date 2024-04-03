@@ -4,6 +4,8 @@ export type Configuration = {
   thirdValueLocation: number;
   fourthValueLocation: number;
 
+  cacheValueLocation: number;
+
   tempMemoryValueMethod: string;
   tempMemoryValueLocation?: number;
 };

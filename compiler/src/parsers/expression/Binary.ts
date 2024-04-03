@@ -84,7 +84,7 @@ export function parseBinaryExpression(
         },
         {
           type: "register",
-          value: configuration.secondValueLocation,
+          value: configuration.cacheValueLocation,
         },
       ],
     });
@@ -95,6 +95,34 @@ export function parseBinaryExpression(
         {
           type: "func",
           value: "u8ToU32",
+        },
+      ],
+    });
+
+    ilData.push({
+      opcode: Opcodes.RMV,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.firstValueLocation,
+        },
+        {
+          type: "register",
+          value: configuration.secondValueLocation,
+        },
+      ],
+    });
+
+    ilData.push({
+      opcode: Opcodes.RMV,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.cacheValueLocation,
+        },
+        {
+          type: "register",
+          value: configuration.firstValueLocation,
         },
       ],
     });
@@ -131,24 +159,47 @@ export function parseBinaryExpression(
         },
         {
           type: "register",
+          value: configuration.cacheValueLocation,
+        },
+      ],
+    });
+
+    ilData.push({
+      opcode: Opcodes.FUN,
+      arguments: [
+        {
+          type: "func",
+          value: "u8ToU32",
+        },
+      ],
+    });
+
+    ilData.push({
+      opcode: Opcodes.RMV,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.firstValueLocation,
+        },
+        {
+          type: "register",
           value: configuration.secondValueLocation,
         },
       ],
     });
 
     ilData.push({
-      opcode: Opcodes.SPE,
+      opcode: Opcodes.RMV,
       arguments: [
+        {
+          type: "register",
+          value: configuration.cacheValueLocation,
+        },
         {
           type: "register",
           value: configuration.firstValueLocation,
         },
       ],
-    });
-
-    ilData.push({
-      opcode: Opcodes.SPO,
-      arguments: [],
     });
   } else if (expression.right.type == "NumericLiteral") {
     ilData.push({

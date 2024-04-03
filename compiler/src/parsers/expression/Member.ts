@@ -4,11 +4,11 @@ import type {
   MemberExpression,
   NumericLiteral,
 } from "@babel/types";
+
 import {
   type Expression,
   type File,
   Opcodes,
-  Registers,
 } from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
