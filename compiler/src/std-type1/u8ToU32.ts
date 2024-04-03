@@ -1,5 +1,5 @@
 import { type Expression, type File, Opcodes, Registers } from "../libs/il.js";
-import type { Configuration } from "../libs/types";
+import type { Configuration } from "../libs/types.js";
 
 export function loadU8ToU32(il: File, configuration: Configuration) {
   if (il["loadU8ToU32"]) return;

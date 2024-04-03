@@ -1,5 +1,5 @@
 import { type Expression, type File, Opcodes, Registers } from "../libs/il.js";
-import type { Configuration } from "../libs/types";
+import type { Configuration } from "../libs/types.js";
 
 /**
 This converts a u32, and splits it up into chunks in big-endian order.
