@@ -146,6 +146,7 @@ export class CPU {
           this.registers[instruction.arguments[0]] ==
             this.registers[instruction.arguments[1]],
         );
+        
         break;
       }
 
@@ -153,6 +154,7 @@ export class CPU {
         this.registers[instruction.arguments[1]] = Number(
           !this.registers[instruction.arguments[0]],
         );
+
         break;
       }
 
@@ -161,6 +163,7 @@ export class CPU {
           this.registers[instruction.arguments[0]] >
             this.registers[instruction.arguments[1]],
         );
+
         break;
       }
 
@@ -172,6 +175,7 @@ export class CPU {
       case Opcodes.RMV: {
         this.registers[instruction.arguments[1]] =
           this.registers[instruction.arguments[0]];
+
         break;
       }
 
@@ -185,6 +189,7 @@ export class CPU {
           this.registers[instruction.arguments[1]],
           this.registers[instruction.arguments[0]],
         );
+
         break;
       }
 
@@ -199,6 +204,7 @@ export class CPU {
         this.registers[instruction.arguments[1]] = this.memory.get(
           this.registers[instruction.arguments[0]],
         );
+
         break;
       }
 
@@ -243,6 +249,7 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] <<
           this.registers[instruction.arguments[1]];
+        
         break;
       }
 
@@ -250,12 +257,14 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] >>
           this.registers[instruction.arguments[1]];
+
         break;
       }
 
       case Opcodes.NOT: {
         this.registers[instruction.arguments[1]] =
           ~this.registers[instruction.arguments[0]];
+
         break;
       }
 
@@ -263,6 +272,7 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] &
           this.registers[instruction.arguments[1]];
+
         break;
       }
 
@@ -270,6 +280,7 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] |
           this.registers[instruction.arguments[1]];
+
         break;
       }
 
@@ -277,6 +288,7 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] ^
           this.registers[instruction.arguments[1]];
+
         break;
       }
 
@@ -284,6 +296,7 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] +
           this.registers[instruction.arguments[1]];
+
         break;
       }
 
@@ -291,6 +304,7 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] -
           this.registers[instruction.arguments[1]];
+
         break;
       }
 
@@ -298,6 +312,7 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] *
           this.registers[instruction.arguments[1]];
+
         break;
       }
 
@@ -306,6 +321,7 @@ export class CPU {
           this.registers[instruction.arguments[0]] /
             this.registers[instruction.arguments[1]],
         );
+
         break;
       }
 
@@ -313,6 +329,7 @@ export class CPU {
         this.registers[instruction.arguments[2]] =
           this.registers[instruction.arguments[0]] %
           this.registers[instruction.arguments[1]];
+
         break;
       }
     }
