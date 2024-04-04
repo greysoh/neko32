@@ -9,26 +9,8 @@ import type { Configuration } from "./libs/types.js";
 
 import { parseBlock } from "./parsers/ParseBlock.js";
 
-// FIXME: This is a hacky workaround to if statements being out of order, before main is defined
-
-/*
-"999999": [
-    {
-      opcode: Opcodes.REW,
-      arguments: [
-        {
-          type: "func",
-          value: "main",
-        },
-        {
-          type: "register",
-          value: 0,
-        },
-      ],
-    },
-  ],
-*/
-
+// FIXME: The IL data might be out of order sometimes (workaround is fixed to not be as bulky).
+// This would be fixed if we switched to an array instead of a dictionary/JSON object
 const il: File = {};
 
 const compilerOptions: Configuration = {
