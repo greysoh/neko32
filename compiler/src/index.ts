@@ -4,14 +4,15 @@ import { join } from "node:path";
 import { Statement } from "@babel/types";
 import { parse } from "@babel/parser";
 
-import { Opcodes, Registers, writeIL, type File } from "./libs/il.js";
+import { Registers, writeIL, type File } from "./libs/il.js";
 import type { Configuration } from "./libs/types.js";
 
 import { parseBlock } from "./parsers/ParseBlock.js";
 
 // FIXME: This is a hacky workaround to if statements being out of order, before main is defined
-const il: File = {
-  "999999": [
+
+/*
+"999999": [
     {
       opcode: Opcodes.REW,
       arguments: [
@@ -26,7 +27,9 @@ const il: File = {
       ],
     },
   ],
-};
+*/
+
+const il: File = {};
 
 const compilerOptions: Configuration = {
   firstValueLocation: Registers.r28,
@@ -106,6 +109,7 @@ for (const element of parsedFile.program.body) {
 
 if (process.env.NODE_ENV != "production") console.log(" - Assembling");
 const data = writeIL(il);
+if (process.env.NECC_DUMP_IL) console.log(il);
 
 if (process.env.NODE_ENV != "production") console.log(" - Writing file");
 

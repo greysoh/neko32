@@ -10,7 +10,7 @@
 - Memory Write          [x]
 - Math operations       [x]
 - Bitwise operations    [x]
-- Basic if statements   [ ]
+- Basic if statements   [x]
 - If else               [ ]
 - Boolean and           [ ]
 - Boolean or            [ ]

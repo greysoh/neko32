@@ -31,16 +31,19 @@ export function parseIfStatement(
     );
 
   const newBranchID = getRandomInt(1_000_000, 9_999_999);
-  const hackyBranchID = `hack_delete_${newBranchID}`;
+
+  const binaryCheckID = `internal__if_statement_checker_${getRandomInt(1_000_000, 9_999_999)}`;
+  const hackyBranchID = `internal__hack_delete_${newBranchID}`;
 
   const newBranch: Expression[] = [];
+  const binaryExpressionBranch: Expression[] = [];
 
   ilData.push({
     opcode: Opcodes.FUN,
     arguments: [
       {
         type: "func",
-        value: `${newBranchID}`,
+        value: `internal__if_${newBranchID}`,
       },
     ],
   });
@@ -51,14 +54,14 @@ export function parseIfStatement(
       expression: element.test,
     },
     il,
-    newBranch,
+    binaryExpressionBranch,
     configuration,
   );
 
   // By default it will return if true, which isn't really what we want
   // Therefore, we need to invert the value.
 
-  newBranch.push({
+  binaryExpressionBranch.push({
     opcode: Opcodes.INV,
     arguments: [
       {
@@ -72,20 +75,58 @@ export function parseIfStatement(
     ],
   });
 
+  binaryExpressionBranch.push({
+    opcode: Opcodes.RMV,
+    arguments: [
+      {
+        type: "register",
+        value: configuration.secondValueLocation
+      },
+      {
+        type: "register",
+        value: configuration.firstValueLocation
+      }
+    ]
+  });
+
+  binaryExpressionBranch.push({
+    opcode: Opcodes.RET,
+    arguments: [
+      {
+        type: "register",
+        value: Registers.c1,
+      },
+    ],
+  });
+
+  newBranch.push({
+    opcode: Opcodes.FUN,
+    arguments: [
+      {
+        type: "func",
+        value: binaryCheckID
+      }
+    ]
+  });
+
   newBranch.push({
     opcode: Opcodes.RET,
     arguments: [
       {
         type: "register",
-        value: configuration.secondValueLocation,
+        value: configuration.firstValueLocation,
       },
     ],
   });
 
+  // Check if, betwen the current branch values, and now, there's a return value, that isn't ours
+  // Then, we check if it is "c1", so we can patch it
+
   parseBlock(hackyBranchID, element.consequent, il, configuration);
 
-  il[`${newBranchID}`] = newBranch;
-  il[`${newBranchID}`].push(...il[hackyBranchID]);
+  il[binaryCheckID] = binaryExpressionBranch;
+  il[`internal__if_${newBranchID}`] = newBranch;
+  il[`internal__if_${newBranchID}`].push(...il[hackyBranchID]);
 
   newBranch.push({
     opcode: Opcodes.RET,
