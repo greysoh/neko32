@@ -443,15 +443,79 @@ export function parseBinaryExpression(
     }
 
     case "==": {
-      throw new CompilerNotImplementedError(
-        "Non-absolute checking (==) is not supported. Please use absolute checking (===) instead.",
-      );
+      console.warn("WARNING: Non-absolute checking (==) is not supported. This behaves like absolute checking.");
+
+      ilData.push({
+        opcode: Opcodes.EQL,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.secondValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.thirdValueLocation,
+          },
+        ],
+      });
+      
+      break;
     }
 
     case "!=": {
-      throw new CompilerNotImplementedError(
-        "Non-absolute checking (!=) is not supported. Please use absolute checking (!==) instead.",
-      );
+      console.warn("WARNING: Non-absolute checking (!=) is not supported. This behaves like absolute checking.");
+      
+      ilData.push({
+        opcode: Opcodes.EQL,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.secondValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.thirdValueLocation,
+          },
+        ],
+      });
+
+      ilData.push({
+        opcode: Opcodes.INV,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.thirdValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.firstValueLocation,
+          },
+        ],
+      });
+
+      ilData.push({
+        opcode: Opcodes.RMV,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation,
+          },
+          {
+            type: "register",
+            value: configuration.thirdValueLocation,
+          },
+        ],
+      });
+      
+      break;
     }
 
     case "===": {
