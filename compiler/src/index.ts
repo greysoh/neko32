@@ -66,7 +66,7 @@ async function parseTopLevel(element: Statement, fileName: string) {
 
       const parsedFile = parse(file, {
         sourceType: "module",
-        sourceFilename: newFileName
+        sourceFilename: newFileName,
       });
 
       for (const element of parsedFile.program.body) {
@@ -77,7 +77,8 @@ async function parseTopLevel(element: Statement, fileName: string) {
     }
 
     case "ExportNamedDeclaration": {
-      if (!element.declaration) throw new Error("You can't export nothing (ex: export;)");
+      if (!element.declaration)
+        throw new Error("You can't export nothing (ex: export;)");
       await parseTopLevel(element.declaration, fileName);
 
       break;
