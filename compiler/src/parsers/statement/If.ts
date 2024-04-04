@@ -19,6 +19,9 @@ export function parseIfStatement(
   il: File,
   ilData: Expression[],
   configuration: Configuration,
+
+  // Internal arguments, do not use outside of this, please
+  ifCheckTree: string[] = []
 ): void {
   if (element.test.type != "BinaryExpression")
     throw new CompilerNotImplementedError(
@@ -29,6 +32,17 @@ export function parseIfStatement(
     throw new CompilerNotImplementedError(
       "You must use a block with if statements for now",
     );
+
+  if (element.alternate) {
+    if (
+      element.alternate.type != "BlockStatement" &&
+      element.alternate.type != "IfStatement"
+    ) {
+      throw new Error(
+        "You must use either an if or block statement, if you have data after the if statement",
+      );
+    }
+  }
 
   const newBranchID = getRandomInt(1_000_000, 9_999_999);
 
@@ -59,7 +73,49 @@ export function parseIfStatement(
   );
 
   // By default it will return if true, which isn't really what we want
-  // Therefore, we need to invert the value.
+  // Therefore we need to invert the value.
+
+  binaryExpressionBranch.push({
+    opcode: Opcodes.RET,
+    arguments: [
+      {
+        type: "register",
+        value: Registers.c1,
+      },
+    ],
+  });
+
+  for (const expBlock of ifCheckTree) {
+    newBranch.push({
+      opcode: Opcodes.FUN,
+      arguments: [
+        {
+          type: "func",
+          value: expBlock
+        }
+      ]
+    });
+  
+    newBranch.push({
+      opcode: Opcodes.RET,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.firstValueLocation,
+        },
+      ],
+    });
+  }
+
+  newBranch.push({
+    opcode: Opcodes.FUN,
+    arguments: [
+      {
+        type: "func",
+        value: binaryCheckID
+      }
+    ]
+  });
 
   binaryExpressionBranch.push({
     opcode: Opcodes.INV,
@@ -75,46 +131,12 @@ export function parseIfStatement(
     ],
   });
 
-  binaryExpressionBranch.push({
-    opcode: Opcodes.RMV,
-    arguments: [
-      {
-        type: "register",
-        value: configuration.secondValueLocation
-      },
-      {
-        type: "register",
-        value: configuration.firstValueLocation
-      }
-    ]
-  });
-
-  binaryExpressionBranch.push({
-    opcode: Opcodes.RET,
-    arguments: [
-      {
-        type: "register",
-        value: Registers.c1,
-      },
-    ],
-  });
-
-  newBranch.push({
-    opcode: Opcodes.FUN,
-    arguments: [
-      {
-        type: "func",
-        value: binaryCheckID
-      }
-    ]
-  });
-
   newBranch.push({
     opcode: Opcodes.RET,
     arguments: [
       {
         type: "register",
-        value: configuration.firstValueLocation,
+        value: configuration.secondValueLocation,
       },
     ],
   });
@@ -137,6 +159,72 @@ export function parseIfStatement(
       },
     ],
   });
+
+  if (element.alternate) {
+    if (element.alternate.type == "IfStatement") {
+      const newTree = Array.from(ifCheckTree);
+      newTree.push(binaryCheckID);
+
+      parseIfStatement(element.alternate, il, ilData, configuration, newTree);
+    } else if (element.alternate.type == "BlockStatement") {
+      const newTree = Array.from(ifCheckTree);
+      newTree.push(binaryCheckID);
+
+      const newBranchID = `internal__ifelseblock_${getRandomInt(1_000_000, 9_999_999)}`;
+      const hackyBranchID = `internal__hack_delete_${getRandomInt(1_000_000, 9_999_999)}`;
+
+      const newBranch: Expression[] = [];
+
+      for (const expBlock of newTree) {
+        newBranch.push({
+          opcode: Opcodes.FUN,
+          arguments: [
+            {
+              type: "func",
+              value: expBlock
+            }
+          ]
+        });
+  
+        newBranch.push({
+          opcode: Opcodes.RET,
+          arguments: [
+            {
+              type: "register",
+              value: configuration.firstValueLocation,
+            },
+          ],
+        });
+      }
+
+      parseBlock(hackyBranchID, element.consequent, il, configuration);
+
+      il[newBranchID] = newBranch;
+      il[newBranchID].push(...il[hackyBranchID]);
+
+      newBranch.push({
+        opcode: Opcodes.RET,
+        arguments: [
+          {
+            type: "register",
+            value: Registers.c1,
+          },
+        ],
+      });
+
+      ilData.push({
+        opcode: Opcodes.FUN,
+        arguments: [
+          {
+            type: "func",
+            value: newBranchID,
+          },
+        ],
+      });
+
+      delete il[hackyBranchID];
+    }
+  }
 
   delete il[hackyBranchID];
 }
