@@ -1,5 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
+import { Statement } from "@babel/types";
 import { parse } from "@babel/parser";
 
 import { Opcodes, Registers, writeIL, type File } from "./libs/il.js";
@@ -52,10 +54,38 @@ const parsedFile = parse(file, {
 
 if (process.env.NODE_ENV != "production") console.log(" - Compiling");
 
-for (const element of parsedFile.program.body) {
+async function parseTopLevel(element: Statement, fileName: string) {
   switch (element.type) {
     default: {
       throw new Error("Unsupported top level element: " + element.type);
+    }
+
+    case "ImportDeclaration": {
+      const newFileName = join(fileName, "..", element.source.value);
+      const file = await readFile(newFileName, "utf-8");
+
+      const parsedFile = parse(file, {
+        sourceType: "module",
+        sourceFilename: newFileName
+      });
+
+      for (const element of parsedFile.program.body) {
+        await parseTopLevel(element, newFileName);
+      }
+
+      break;
+    }
+
+    case "ExportNamedDeclaration": {
+      if (!element.declaration) throw new Error("You can't export nothing (ex: export;)");
+      await parseTopLevel(element.declaration, fileName);
+
+      break;
+    }
+
+    case "ExportAllDeclaration": {
+      // We forcefully put in everything anyways, so this won't do much
+      break;
     }
 
     case "FunctionDeclaration": {
@@ -67,6 +97,10 @@ for (const element of parsedFile.program.body) {
       break;
     }
   }
+}
+
+for (const element of parsedFile.program.body) {
+  await parseTopLevel(element, process.argv[2]);
 }
 
 if (process.env.NODE_ENV != "production") console.log(" - Assembling");
