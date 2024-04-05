@@ -117,7 +117,7 @@ export function parseIfStatement(
     ]
   });
 
-  binaryExpressionBranch.push({
+  newBranch.push({
     opcode: Opcodes.INV,
     arguments: [
       {
