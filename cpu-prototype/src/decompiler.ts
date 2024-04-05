@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 import { Memory, MMIOCallbackWrite } from "./Core/Memory.js";
-import { type Instruction, CPU, getInstructionLength } from "./Core/CPU.js";
+import { CPU, getInstructionLength } from "./Core/CPU.js";
 
 enum RealOpcodes {
   nop = 0,
