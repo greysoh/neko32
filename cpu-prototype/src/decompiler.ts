@@ -128,7 +128,7 @@ type FlexibleInstruction = {
 
   arguments: (number | string)[];
   argumentLen: number;
-}
+};
 
 type ILFile = Record<string, ILExpression[]>;
 
@@ -201,15 +201,15 @@ if (!process.argv[3]) {
   for (const potentialFunctionIndex in potentialFunctions) {
     const functionTreeName = "estimated_dis_" + potentialFunctionIndex;
     functionTrees[functionTreeName] = [];
-  
+
     const potentialFunction = potentialFunctions[potentialFunctionIndex];
     const nextFunctionIndex = parseInt(potentialFunctionIndex) + 1;
-  
+
     const nextFunction =
       nextFunctionIndex >= potentialFunctions.length
         ? rawInstructions.length
         : potentialFunctions[nextFunctionIndex];
-  
+
     for (
       let functionIndex = potentialFunction;
       functionIndex <= nextFunction;
@@ -218,14 +218,14 @@ if (!process.argv[3]) {
       // FIXME: hack fixes. pls fix properly
       if (potentialFunction - functionIndex == 0 && potentialFunction != 0)
         continue;
-  
+
       const instruction = rawInstructions[functionIndex];
-  
+
       if (!instruction) {
         console.error("FIXME: Instruction is undefined");
         continue;
       }
-  
+
       functionTrees[functionTreeName].push(instruction);
     }
   }
@@ -233,7 +233,9 @@ if (!process.argv[3]) {
   console.log("[main] Done parsing functions.");
 } else {
   console.log("[dsym] Getting IL dsym...");
-  const ilDsym: ILFile = JSON.parse(await readFile(process.argv[3], "utf8")) as ILFile;
+  const ilDsym: ILFile = JSON.parse(
+    await readFile(process.argv[3], "utf8"),
+  ) as ILFile;
   console.log("[dsym] Got IL dsym.");
 
   for (const dsymKey of Object.keys(ilDsym)) {
@@ -249,7 +251,7 @@ if (!process.argv[3]) {
       functionTrees[dsymKey].push({
         opcode: instruction.opcode,
         arguments: functionArguments,
-        argumentLen: getInstructionLength(instruction.opcode)
+        argumentLen: getInstructionLength(instruction.opcode),
       });
     }
   }
