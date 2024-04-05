@@ -113,8 +113,27 @@ const functionArguments: FunctionArguments = {
   math_mod: ["register", "register", "register"],
 };
 
+type ILArgument = {
+  type: "u8" | "u32" | "func" | "register";
+  value: number | string; // if func, should be string
+};
+
+type ILExpression = {
+  opcode: number;
+  arguments: ILArgument[];
+};
+
+type FlexibleInstruction = {
+  opcode: number;
+
+  arguments: (number | string)[];
+  argumentLen: number;
+}
+
+type ILFile = Record<string, ILExpression[]>;
+
 if (!process.argv[2]) {
-  console.log("Usage: <process> file.bin");
+  console.log("Usage: <process> file.bin optional_il.json");
   process.exit(1);
 }
 
@@ -139,7 +158,7 @@ memory.configureMMIO(0, 4094, (event, address, value) => {
 
 console.log("[main] Starting decompilation");
 
-const rawInstructions: Instruction[] = [];
+const rawInstructions: FlexibleInstruction[] = [];
 const potentialFunctions = [0]; // NOTE: This could be a Set(), but I don't know how to do that, and I want this done. PRs welcome.
 
 let outputAssembly =
@@ -174,40 +193,68 @@ while (cpu.registers[0] < file.length) {
 }
 
 potentialFunctions.sort();
-const functionTrees: Record<string, Instruction[]> = {};
+const functionTrees: Record<string, FlexibleInstruction[]> = {};
 
 console.log("[main] Resolving functions");
 
-for (const potentialFunctionIndex in potentialFunctions) {
-  const functionTreeName = "estimated_dis_" + potentialFunctionIndex;
-  functionTrees[functionTreeName] = [];
-
-  const potentialFunction = potentialFunctions[potentialFunctionIndex];
-  const nextFunctionIndex = parseInt(potentialFunctionIndex) + 1;
-
-  const nextFunction =
-    nextFunctionIndex >= potentialFunctions.length
-      ? rawInstructions.length
-      : potentialFunctions[nextFunctionIndex];
-
-  for (
-    let functionIndex = potentialFunction;
-    functionIndex <= nextFunction;
-    functionIndex++
-  ) {
-    // FIXME: hack fixes. pls fix properly
-    if (potentialFunction - functionIndex == 0 && potentialFunction != 0)
-      continue;
-
-    const instruction = rawInstructions[functionIndex];
-
-    if (!instruction) {
-      console.error("FIXME: Instruction is undefined");
-      continue;
+if (!process.argv[3]) {
+  for (const potentialFunctionIndex in potentialFunctions) {
+    const functionTreeName = "estimated_dis_" + potentialFunctionIndex;
+    functionTrees[functionTreeName] = [];
+  
+    const potentialFunction = potentialFunctions[potentialFunctionIndex];
+    const nextFunctionIndex = parseInt(potentialFunctionIndex) + 1;
+  
+    const nextFunction =
+      nextFunctionIndex >= potentialFunctions.length
+        ? rawInstructions.length
+        : potentialFunctions[nextFunctionIndex];
+  
+    for (
+      let functionIndex = potentialFunction;
+      functionIndex <= nextFunction;
+      functionIndex++
+    ) {
+      // FIXME: hack fixes. pls fix properly
+      if (potentialFunction - functionIndex == 0 && potentialFunction != 0)
+        continue;
+  
+      const instruction = rawInstructions[functionIndex];
+  
+      if (!instruction) {
+        console.error("FIXME: Instruction is undefined");
+        continue;
+      }
+  
+      functionTrees[functionTreeName].push(instruction);
     }
-
-    functionTrees[functionTreeName].push(instruction);
   }
+
+  console.log("[main] Done parsing functions.");
+} else {
+  console.log("[dsym] Getting IL dsym...");
+  const ilDsym: ILFile = JSON.parse(await readFile(process.argv[3], "utf8")) as ILFile;
+  console.log("[dsym] Got IL dsym.");
+
+  for (const dsymKey of Object.keys(ilDsym)) {
+    functionTrees[dsymKey] = [];
+
+    for (const instruction of ilDsym[dsymKey]) {
+      const functionArguments: (number | string)[] = [];
+
+      for (const argument of instruction.arguments) {
+        functionArguments.push(argument.value);
+      }
+
+      functionTrees[dsymKey].push({
+        opcode: instruction.opcode,
+        arguments: functionArguments,
+        argumentLen: getInstructionLength(instruction.opcode)
+      });
+    }
+  }
+
+  console.log("[dsym] Done parsing functions");
 }
 
 for (const treeIndex of Object.keys(functionTrees)) {
@@ -224,6 +271,8 @@ for (const treeIndex of Object.keys(functionTrees)) {
       const argumentType = functionArguments[opcodeName][argumentIndex];
 
       if (argumentType == "register") {
+        // fixme
+        // @ts-ignore
         newInstructionLine += RealRegisters[argument] + " ";
       } else if (argumentType == "u32") {
         newInstructionLine += argument + " ";
