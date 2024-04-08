@@ -197,7 +197,7 @@ export function parseIfStatement(
         });
       }
 
-      parseBlock(hackyBranchID, element.consequent, il, configuration);
+      parseBlock(hackyBranchID, element.alternate, il, configuration);
 
       il[newBranchID] = newBranch;
       il[newBranchID].push(...il[hackyBranchID]);
