@@ -1,4 +1,5 @@
 import type { IfStatement } from "@babel/types";
+import { strict as assert } from "node:assert";
 
 import {
   Opcodes,
@@ -7,13 +8,136 @@ import {
   type File,
 } from "../../libs/il.js";
 
-import { getRandomInt } from "../../libs/getRandomInt.js";
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
+import { getRandomInt } from "../../libs/getRandomInt.js";
 import type { Configuration } from "../../libs/types.js";
 
 import { parseBinaryExpression } from "../expression/Binary.js";
 import { parseBlock } from "../ParseBlock.js";
 
+/**
+ * Patches return statements to behave correctly
+ * @param origIlData Original IL data (not branched if statement)
+ * @param newIlData If statement IL data (branched if statement)
+ */
+function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[], prevExpTree: string[], configuration: Configuration) {
+  // Convert the array values to contain the index also
+  const valuedIlData = newIlData.map((i, index) => ({
+    index: index,
+    value: i
+  }));
+
+  const allReturnStatements = valuedIlData.filter((i) => i.value.opcode == Opcodes.RET);
+  
+  for (const returnStatement of allReturnStatements) {
+    assert.ok(returnStatement.index - 1 > 0, "Previous return statement caller does not exist!");
+    const previousReturnValue = newIlData[returnStatement.index - 1];
+    
+    if (returnStatement.value.opcode == Opcodes.RET && returnStatement.value.arguments[0].value == Registers.c1) {
+      const lastElement = prevExpTree.slice(-1)[0];
+
+      // Parse it like a traditional if...else statement
+      for (const expTreeElement of prevExpTree) {
+        if (expTreeElement == lastElement) break;
+
+        origIlData.push({
+          opcode: Opcodes.FUN,
+          arguments: [
+            {
+              type: "func",
+              value: expTreeElement
+            }
+          ]
+        });
+
+        origIlData.push({
+          opcode: Opcodes.INV,
+          arguments: [
+            {
+              type: "register",
+              value: configuration.firstValueLocation
+            },
+            {
+              type: "register",
+              value: configuration.secondValueLocation
+            }
+          ]
+        });
+
+        origIlData.push({
+          opcode: Opcodes.RET,
+          arguments: [
+            {
+              type: "register",
+              value: configuration.secondValueLocation
+            }
+          ]
+        });
+      }
+
+      origIlData.push({
+        opcode: Opcodes.FUN,
+        arguments: [
+          {
+            type: "func",
+            value: lastElement
+          }
+        ]
+      });
+
+      origIlData.push({
+        opcode: Opcodes.RET,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation
+          }
+        ]
+      });
+    } else {
+      // Must be patched previously, or something...
+      if (previousReturnValue.opcode == Opcodes.FUN) {
+        origIlData.push(previousReturnValue);
+        origIlData.push({
+          opcode: Opcodes.RET,
+          arguments: [
+            {
+              type: "register",
+              value: configuration.firstValueLocation
+            }
+          ]
+        });
+      } else if (previousReturnValue.opcode == Opcodes.INV) {
+        assert.ok(returnStatement.index - 2 > 0, "(second resolved) Previous return statement caller does not exist!");
+        const trueOriginalILData = newIlData[returnStatement.index - 2];
+
+        origIlData.push(trueOriginalILData);
+        origIlData.push(previousReturnValue);
+
+        origIlData.push({
+          opcode: Opcodes.RET,
+          arguments: [
+            {
+              type: "register",
+              value: configuration.firstValueLocation
+            }
+          ]
+        });
+      } else {
+        console.error(`ERROR Internal: Unexpected value for the previous return value, when patching returns in if statement. Code may not behave correctly! (Recieved ${previousReturnValue.opcode})`);
+      }
+    }
+  }
+}
+
+/**
+ * Parses babel's if statements into real code for the CPU
+ * @param element If statement element
+ * @param il Raw IL data to access directly
+ * @param ilData Current branched IL data
+ * @param configuration Compiler configuration
+ * @param ifCheckTree Internal argument to get the "if statement checker" for the else statements, to check properly
+ */
 export function parseIfStatement(
   element: IfStatement,
   il: File,
@@ -142,9 +266,10 @@ export function parseIfStatement(
   });
 
   // Check if, betwen the current branch values, and now, there's a return value, that isn't ours
-  // Then, we check if it is "c1", so we can patch it
+  // Then, we check if it is "c1", so we can patch it.
 
   parseBlock(hackyBranchID, element.consequent, il, configuration);
+  internalReturnPatcher(ilData, il[hackyBranchID], new Array(...ifCheckTree, binaryCheckID), configuration);
 
   il[binaryCheckID] = binaryExpressionBranch;
   il[`internal__if_${newBranchID}`] = newBranch;
@@ -175,6 +300,16 @@ export function parseIfStatement(
 
       const newBranch: Expression[] = [];
 
+      ilData.push({
+        opcode: Opcodes.FUN,
+        arguments: [
+          {
+            type: "func",
+            value: newBranchID,
+          },
+        ],
+      });
+
       for (const expBlock of newTree) {
         newBranch.push({
           opcode: Opcodes.FUN,
@@ -198,6 +333,7 @@ export function parseIfStatement(
       }
 
       parseBlock(hackyBranchID, element.alternate, il, configuration);
+      internalReturnPatcher(ilData, il[hackyBranchID], new Array(...ifCheckTree, binaryCheckID), configuration);
 
       il[newBranchID] = newBranch;
       il[newBranchID].push(...il[hackyBranchID]);
@@ -208,16 +344,6 @@ export function parseIfStatement(
           {
             type: "register",
             value: Registers.c1,
-          },
-        ],
-      });
-
-      ilData.push({
-        opcode: Opcodes.FUN,
-        arguments: [
-          {
-            type: "func",
-            value: newBranchID,
           },
         ],
       });

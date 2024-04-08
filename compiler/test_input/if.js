@@ -8,6 +8,8 @@ function main() {
     CPU.registers[8] = 20;
   } else {
     CPU.registers[9] = 20;
+
+    return;
   }
 
   CPU.jump(main);
