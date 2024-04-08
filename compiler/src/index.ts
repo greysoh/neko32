@@ -4,29 +4,14 @@ import { join } from "node:path";
 import { Statement } from "@babel/types";
 import { parse } from "@babel/parser";
 
-import { Opcodes, Registers, writeIL, type File } from "./libs/il.js";
+import { Registers, writeIL, type File } from "./libs/il.js";
 import type { Configuration } from "./libs/types.js";
 
 import { parseBlock } from "./parsers/ParseBlock.js";
 
-// FIXME: This is a hacky workaround to if statements being out of order, before main is defined
-const il: File = {
-  "999999": [
-    {
-      opcode: Opcodes.REW,
-      arguments: [
-        {
-          type: "func",
-          value: "main",
-        },
-        {
-          type: "register",
-          value: 0,
-        },
-      ],
-    },
-  ],
-};
+// FIXME: The IL data might be out of order sometimes (workaround is fixed to not be as bulky).
+// This would be fixed if we switched to an array instead of a dictionary/JSON object
+const il: File = {};
 
 const compilerOptions: Configuration = {
   firstValueLocation: Registers.r28,
@@ -106,6 +91,11 @@ for (const element of parsedFile.program.body) {
 
 if (process.env.NODE_ENV != "production") console.log(" - Assembling");
 const data = writeIL(il);
+
+if (process.env.NECC_DUMP_IL) {
+  console.log(il);
+  await writeFile("./il.json", JSON.stringify(il, null, 2));
+}
 
 if (process.env.NODE_ENV != "production") console.log(" - Writing file");
 
