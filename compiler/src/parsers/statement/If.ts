@@ -94,38 +94,36 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
           }
         ]
       });
+    // Must be patched previously, or something...
+    } else if (previousReturnValue.opcode == Opcodes.FUN) {
+      origIlData.push(previousReturnValue);
+      origIlData.push({
+        opcode: Opcodes.RET,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation
+          }
+        ]
+      });
+    } else if (previousReturnValue.opcode == Opcodes.INV) {
+      assert.ok(returnStatement.index - 2 > 0, "(second resolved) Previous return statement caller does not exist!");
+      const trueOriginalILData = newIlData[returnStatement.index - 2];
+
+      origIlData.push(trueOriginalILData);
+      origIlData.push(previousReturnValue);
+
+      origIlData.push({
+        opcode: Opcodes.RET,
+        arguments: [
+          {
+            type: "register",
+            value: configuration.firstValueLocation
+          }
+        ]
+      });
     } else {
-      // Must be patched previously, or something...
-      if (previousReturnValue.opcode == Opcodes.FUN) {
-        origIlData.push(previousReturnValue);
-        origIlData.push({
-          opcode: Opcodes.RET,
-          arguments: [
-            {
-              type: "register",
-              value: configuration.firstValueLocation
-            }
-          ]
-        });
-      } else if (previousReturnValue.opcode == Opcodes.INV) {
-        assert.ok(returnStatement.index - 2 > 0, "(second resolved) Previous return statement caller does not exist!");
-        const trueOriginalILData = newIlData[returnStatement.index - 2];
-
-        origIlData.push(trueOriginalILData);
-        origIlData.push(previousReturnValue);
-
-        origIlData.push({
-          opcode: Opcodes.RET,
-          arguments: [
-            {
-              type: "register",
-              value: configuration.firstValueLocation
-            }
-          ]
-        });
-      } else {
-        console.error(`ERROR Internal: Unexpected value for the previous return value, when patching returns in if statement. Code may not behave correctly! (Recieved ${previousReturnValue.opcode})`);
-      }
+      console.error(`ERROR Internal: Unexpected value for the previous return value, when patching returns in if statement. Code may not behave correctly! (Recieved ${previousReturnValue.opcode})`);
     }
   }
 }
