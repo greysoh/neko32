@@ -30,9 +30,6 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
   const allReturnStatements = valuedIlData.filter((i) => i.value.opcode == Opcodes.RET);
   
   for (const returnStatement of allReturnStatements) {
-    assert.ok(returnStatement.index - 1 > 0, "Previous return statement caller does not exist!");
-    const previousReturnValue = newIlData[returnStatement.index - 1];
-    
     if (returnStatement.value.opcode == Opcodes.RET && returnStatement.value.arguments[0].value == Registers.c1) {
       const lastElement = prevExpTree.slice(-1)[0];
 
@@ -96,6 +93,9 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
       });
     } else {
       // Must be patched previously, or something...
+      assert.ok(returnStatement.index - 1 > 0, "Previous return statement caller does not exist!");
+      const previousReturnValue = newIlData[returnStatement.index - 1];
+      
       if (previousReturnValue.opcode == Opcodes.FUN) {
         origIlData.push(previousReturnValue);
         origIlData.push({
