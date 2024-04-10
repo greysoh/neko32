@@ -1,4 +1,4 @@
-import type { Memory } from "./Memory";
+import type { Memory } from "./Memory.js";
 
 export enum Opcodes {
   NOP = 0,

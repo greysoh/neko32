@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { createInterface } from "node:readline/promises";
+import { createInterface } from "node:readline";
 
 import { CPU, Opcodes } from "./Core/CPU.js";
 import { MMIOCallbackWrite, Memory } from "./Core/Memory.js";
