@@ -2,20 +2,16 @@ import type {
   ExpressionStatement,
   AssignmentExpression,
   MemberExpression,
-  NumericLiteral,
   Identifier,
 } from "@babel/types";
 
-import {
-  Opcodes,
-  type Expression,
-  type File,
-} from "../../libs/il.js";
+import { Opcodes, type Expression, type File } from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
-import { parseBinaryExpression } from "./Binary.js";
-
 import type { Configuration } from "../../libs/types.js";
+
+import { parseBinaryExpression } from "./Binary.js";
+import { parseMemberExpression } from "./Member.js";
 
 export function parseAssignmentExpression(
   element: ExpressionStatement,
@@ -36,8 +32,6 @@ export function parseAssignmentExpression(
 
   const expressionObject: MemberExpression = expression.left
     .object as MemberExpression;
-  const expressionValue: NumericLiteral = expression.left
-    .property as NumericLiteral;
 
   const sourceCallerData: Identifier = expressionObject.object as Identifier;
   const destCallerData: Identifier = expressionObject.property as Identifier;
@@ -47,11 +41,77 @@ export function parseAssignmentExpression(
       "Variables are currently not supported right now",
     );
 
-  // Parse right sided expression
-  let outputDataRegAddr: number = -1;
+  const leftAssignmentVirtualBranch: Expression[] = [];
+  const rightAssignmentVirtualBranch: Expression[] = [];
+
+  if (expression.left.property.type == "NumericLiteral") {
+    leftAssignmentVirtualBranch.push({
+      opcode: Opcodes.REW,
+      arguments: [
+        {
+          type: "u32",
+          value: expression.left.property.value,
+        },
+        {
+          type: "register",
+          value: configuration.secondValueLocation,
+        },
+      ],
+    });
+  } else if (expression.left.property.type == "BinaryExpression") {
+    parseBinaryExpression(
+      {
+        type: "ExpressionStatement",
+        expression: expression.left.property,
+      },
+      il,
+      leftAssignmentVirtualBranch,
+      configuration,
+    );
+
+    leftAssignmentVirtualBranch.push({
+      opcode: Opcodes.RMV,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.firstValueLocation,
+        },
+        {
+          type: "register",
+          value: configuration.secondValueLocation,
+        },
+      ],
+    });
+  } else if (expression.left.property.type == "MemberExpression") {
+    parseMemberExpression(
+      {
+        type: "ExpressionStatement",
+        expression: expression.left.property,
+      },
+      il,
+      leftAssignmentVirtualBranch,
+      configuration,
+    );
+
+    leftAssignmentVirtualBranch.push({
+      opcode: Opcodes.RMV,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.firstValueLocation,
+        },
+        {
+          type: "register",
+          value: configuration.secondValueLocation,
+        },
+      ],
+    });
+  } else {
+    throw new Error("Unknown expression value for left side assignment");
+  }
 
   if (expression.right.type == "NumericLiteral") {
-    ilData.push({
+    rightAssignmentVirtualBranch.push({
       opcode: Opcodes.REW,
       arguments: [
         {
@@ -64,8 +124,6 @@ export function parseAssignmentExpression(
         },
       ],
     });
-
-    outputDataRegAddr = configuration.firstValueLocation;
   } else if (expression.right.type == "BinaryExpression") {
     parseBinaryExpression(
       {
@@ -73,61 +131,51 @@ export function parseAssignmentExpression(
         expression: expression.right,
       },
       il,
-      ilData,
+      rightAssignmentVirtualBranch,
       configuration,
     );
-
-    outputDataRegAddr = configuration.firstValueLocation;
+  } else if (expression.right.type == "MemberExpression") {
+    parseMemberExpression(
+      {
+        type: "ExpressionStatement",
+        expression: expression.right,
+      },
+      il,
+      rightAssignmentVirtualBranch,
+      configuration,
+    );
   } else {
-    throw new Error("Unknown expression value");
+    throw new Error("Unknown expression value for right side assignment");
   }
 
   if (destCallerData.name == "registers") {
+    if (expression.left.property.type != "NumericLiteral") {
+      throw new CompilerNotImplementedError(
+        "Due to a CPU design issue, non-integer register access is not supported at this time.",
+      );
+    }
+
+    ilData.push(...rightAssignmentVirtualBranch);
+
     ilData.push({
       opcode: Opcodes.RMV,
       arguments: [
-        {
-          type: "register",
-          value: outputDataRegAddr,
-        },
-        {
-          type: "register",
-          value: expressionValue.value,
-        },
-      ],
-    });
-  } else if (destCallerData.name == "memory") {
-    // Insurance!
-    ilData.push({
-      opcode: Opcodes.RMV,
-      arguments: [
-        {
-          type: "register",
-          value: outputDataRegAddr,
-        },
         {
           type: "register",
           value: configuration.firstValueLocation,
         },
-      ],
-    });
-
-    ilData.push({
-      opcode: Opcodes.REW,
-      arguments: [
-        {
-          type: "u32",
-          value: expressionValue.value,
-        },
         {
           type: "register",
-          value: configuration.secondValueLocation,
+          value: expression.left.property.value,
         },
       ],
     });
+  } else if (destCallerData.name == "memory") {
+    ilData.push(...leftAssignmentVirtualBranch);
+    ilData.push(...rightAssignmentVirtualBranch);
 
     ilData.push({
-      opcode: Opcodes.MCP,
+      opcode: Opcodes.MEW,
       arguments: [
         {
           type: "register",

@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
+import { CPU, getInstructionLength, Instruction, Opcodes } from "./Core/CPU.js";
 import { Memory, MMIOCallbackWrite } from "./Core/Memory.js";
-import { CPU, getInstructionLength } from "./Core/CPU.js";
 
 enum RealOpcodes {
   nop = 0,
@@ -166,7 +166,24 @@ let outputAssembly =
 
 while (cpu.registers[0] < file.length) {
   const fetchedInstruction = cpu.fetch();
-  const decodedInstruction = cpu.decode(fetchedInstruction);
+  let decodedInstruction: Instruction | undefined;
+
+  try {
+    decodedInstruction = cpu.decode(fetchedInstruction);
+  } catch (e) {
+    console.error(e);
+    console.error(
+      "ERROR: Failed decompilation! Aborting step 1, and continuing with what we have...",
+    );
+
+    rawInstructions.push({
+      opcode: Opcodes.NOP,
+      argumentLen: 0,
+      arguments: [],
+    });
+
+    break;
+  }
 
   if (
     decodedInstruction.opcode == RealOpcodes.funct &&
