@@ -20,17 +20,27 @@ import { parseBlock } from "../ParseBlock.js";
  * @param origIlData Original IL data (not branched if statement)
  * @param newIlData If statement IL data (branched if statement)
  */
-function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[], prevExpTree: string[], configuration: Configuration) {
+function internalReturnPatcher(
+  origIlData: Expression[],
+  newIlData: Expression[],
+  prevExpTree: string[],
+  configuration: Configuration,
+) {
   // Convert the array values to contain the index also
   const valuedIlData = newIlData.map((i, index) => ({
     index: index,
-    value: i
+    value: i,
   }));
 
-  const allReturnStatements = valuedIlData.filter((i) => i.value.opcode == Opcodes.RET);
-  
+  const allReturnStatements = valuedIlData.filter(
+    i => i.value.opcode == Opcodes.RET,
+  );
+
   for (const returnStatement of allReturnStatements) {
-    if (returnStatement.value.opcode == Opcodes.RET && returnStatement.value.arguments[0].value == Registers.c1) {
+    if (
+      returnStatement.value.opcode == Opcodes.RET &&
+      returnStatement.value.arguments[0].value == Registers.c1
+    ) {
       const lastElement = prevExpTree.slice(-1)[0];
 
       // Parse it like a traditional if...else statement
@@ -42,9 +52,9 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
           arguments: [
             {
               type: "func",
-              value: expTreeElement
-            }
-          ]
+              value: expTreeElement,
+            },
+          ],
         });
 
         origIlData.push({
@@ -52,13 +62,13 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
           arguments: [
             {
               type: "register",
-              value: configuration.firstValueLocation
+              value: configuration.firstValueLocation,
             },
             {
               type: "register",
-              value: configuration.secondValueLocation
-            }
-          ]
+              value: configuration.secondValueLocation,
+            },
+          ],
         });
 
         origIlData.push({
@@ -66,9 +76,9 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
           arguments: [
             {
               type: "register",
-              value: configuration.secondValueLocation
-            }
-          ]
+              value: configuration.secondValueLocation,
+            },
+          ],
         });
       }
 
@@ -77,9 +87,9 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
         arguments: [
           {
             type: "func",
-            value: lastElement
-          }
-        ]
+            value: lastElement,
+          },
+        ],
       });
 
       origIlData.push({
@@ -87,15 +97,18 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
         arguments: [
           {
             type: "register",
-            value: configuration.firstValueLocation
-          }
-        ]
+            value: configuration.firstValueLocation,
+          },
+        ],
       });
     } else {
       // Must be patched previously, or something...
-      assert.ok(returnStatement.index - 1 > 0, "Previous return statement caller does not exist!");
+      assert.ok(
+        returnStatement.index - 1 > 0,
+        "Previous return statement caller does not exist!",
+      );
       const previousReturnValue = newIlData[returnStatement.index - 1];
-      
+
       if (previousReturnValue.opcode == Opcodes.FUN) {
         origIlData.push(previousReturnValue);
         origIlData.push({
@@ -103,12 +116,15 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
           arguments: [
             {
               type: "register",
-              value: configuration.firstValueLocation
-            }
-          ]
+              value: configuration.firstValueLocation,
+            },
+          ],
         });
       } else if (previousReturnValue.opcode == Opcodes.INV) {
-        assert.ok(returnStatement.index - 2 > 0, "(second resolved) Previous return statement caller does not exist!");
+        assert.ok(
+          returnStatement.index - 2 > 0,
+          "(second resolved) Previous return statement caller does not exist!",
+        );
         const trueOriginalILData = newIlData[returnStatement.index - 2];
 
         origIlData.push(trueOriginalILData);
@@ -119,12 +135,14 @@ function internalReturnPatcher(origIlData: Expression[], newIlData: Expression[]
           arguments: [
             {
               type: "register",
-              value: configuration.firstValueLocation
-            }
-          ]
+              value: configuration.firstValueLocation,
+            },
+          ],
         });
       } else {
-        console.error(`ERROR Internal: Unexpected value for the previous return value, when patching returns in if statement. Code may not behave correctly! (Recieved ${previousReturnValue.opcode})`);
+        console.error(
+          `ERROR Internal: Unexpected value for the previous return value, when patching returns in if statement. Code may not behave correctly! (Recieved ${previousReturnValue.opcode})`,
+        );
       }
     }
   }
@@ -145,7 +163,7 @@ export function parseIfStatement(
   configuration: Configuration,
 
   // Internal arguments, do not use outside of this, please
-  ifCheckTree: string[] = []
+  ifCheckTree: string[] = [],
 ): void {
   if (element.test.type != "BinaryExpression")
     throw new CompilerNotImplementedError(
@@ -215,11 +233,11 @@ export function parseIfStatement(
       arguments: [
         {
           type: "func",
-          value: expBlock
-        }
-      ]
+          value: expBlock,
+        },
+      ],
     });
-  
+
     newBranch.push({
       opcode: Opcodes.RET,
       arguments: [
@@ -236,9 +254,9 @@ export function parseIfStatement(
     arguments: [
       {
         type: "func",
-        value: binaryCheckID
-      }
-    ]
+        value: binaryCheckID,
+      },
+    ],
   });
 
   newBranch.push({
@@ -269,7 +287,12 @@ export function parseIfStatement(
   // Then, we check if it is "c1", so we can patch it.
 
   parseBlock(hackyBranchID, element.consequent, il, configuration);
-  internalReturnPatcher(ilData, il[hackyBranchID], new Array(...ifCheckTree, binaryCheckID), configuration);
+  internalReturnPatcher(
+    ilData,
+    il[hackyBranchID],
+    new Array(...ifCheckTree, binaryCheckID),
+    configuration,
+  );
 
   il[binaryCheckID] = binaryExpressionBranch;
   il[`internal__if_${newBranchID}`] = newBranch;
@@ -316,11 +339,11 @@ export function parseIfStatement(
           arguments: [
             {
               type: "func",
-              value: expBlock
-            }
-          ]
+              value: expBlock,
+            },
+          ],
         });
-  
+
         newBranch.push({
           opcode: Opcodes.RET,
           arguments: [
@@ -333,7 +356,12 @@ export function parseIfStatement(
       }
 
       parseBlock(hackyBranchID, element.alternate, il, configuration);
-      internalReturnPatcher(ilData, il[hackyBranchID], new Array(...ifCheckTree, binaryCheckID), configuration);
+      internalReturnPatcher(
+        ilData,
+        il[hackyBranchID],
+        new Array(...ifCheckTree, binaryCheckID),
+        configuration,
+      );
 
       il[newBranchID] = newBranch;
       il[newBranchID].push(...il[hackyBranchID]);

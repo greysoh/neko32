@@ -406,7 +406,9 @@ export function parseBinaryExpression(
     }
 
     case "==": {
-      console.warn("WARNING: Non-absolute checking (==) is not supported. This behaves like absolute checking.");
+      console.warn(
+        "WARNING: Non-absolute checking (==) is not supported. This behaves like absolute checking.",
+      );
 
       ilData.push({
         opcode: Opcodes.EQL,
@@ -425,13 +427,15 @@ export function parseBinaryExpression(
           },
         ],
       });
-      
+
       break;
     }
 
     case "!=": {
-      console.warn("WARNING: Non-absolute checking (!=) is not supported. This behaves like absolute checking.");
-      
+      console.warn(
+        "WARNING: Non-absolute checking (!=) is not supported. This behaves like absolute checking.",
+      );
+
       ilData.push({
         opcode: Opcodes.EQL,
         arguments: [
@@ -477,7 +481,7 @@ export function parseBinaryExpression(
           },
         ],
       });
-      
+
       break;
     }
 

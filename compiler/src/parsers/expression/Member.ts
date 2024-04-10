@@ -5,11 +5,7 @@ import type {
   NumericLiteral,
 } from "@babel/types";
 
-import {
-  type Expression,
-  type File,
-  Opcodes,
-} from "../../libs/il.js";
+import { type Expression, type File, Opcodes } from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
 import type { Configuration } from "../../libs/types.js";

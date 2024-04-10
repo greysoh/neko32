@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+shopt -s globstar
 ./node_modules/.bin/prettier --ignore-unknown --write {cpu-prototype,compiler}/**/*.{ts,js}
 rustfmt cpu/**/*.rs
+git update-index --again
 exit 0

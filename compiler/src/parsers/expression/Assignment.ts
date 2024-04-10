@@ -5,11 +5,7 @@ import type {
   Identifier,
 } from "@babel/types";
 
-import {
-  Opcodes,
-  type Expression,
-  type File,
-} from "../../libs/il.js";
+import { Opcodes, type Expression, type File } from "../../libs/il.js";
 
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
 import type { Configuration } from "../../libs/types.js";
@@ -46,9 +42,9 @@ export function parseAssignmentExpression(
     );
 
   const leftAssignmentVirtualBranch: Expression[] = [];
-  const rightAssignmentVirtualBranch: Expression[] = []; 
+  const rightAssignmentVirtualBranch: Expression[] = [];
 
-  if (expression.left.property.type == "NumericLiteral") {    
+  if (expression.left.property.type == "NumericLiteral") {
     leftAssignmentVirtualBranch.push({
       opcode: Opcodes.REW,
       arguments: [
@@ -87,10 +83,15 @@ export function parseAssignmentExpression(
       ],
     });
   } else if (expression.left.property.type == "MemberExpression") {
-    parseMemberExpression({
-      type: "ExpressionStatement",
-      expression: expression.left.property
-    }, il, leftAssignmentVirtualBranch, configuration);
+    parseMemberExpression(
+      {
+        type: "ExpressionStatement",
+        expression: expression.left.property,
+      },
+      il,
+      leftAssignmentVirtualBranch,
+      configuration,
+    );
 
     leftAssignmentVirtualBranch.push({
       opcode: Opcodes.RMV,
@@ -134,19 +135,26 @@ export function parseAssignmentExpression(
       configuration,
     );
   } else if (expression.right.type == "MemberExpression") {
-    parseMemberExpression({
-      type: "ExpressionStatement",
-      expression: expression.right
-    }, il, rightAssignmentVirtualBranch, configuration);
+    parseMemberExpression(
+      {
+        type: "ExpressionStatement",
+        expression: expression.right,
+      },
+      il,
+      rightAssignmentVirtualBranch,
+      configuration,
+    );
   } else {
     throw new Error("Unknown expression value for right side assignment");
   }
 
   if (destCallerData.name == "registers") {
     if (expression.left.property.type != "NumericLiteral") {
-      throw new CompilerNotImplementedError("Due to a CPU design issue, non-integer register access is not supported at this time.");
+      throw new CompilerNotImplementedError(
+        "Due to a CPU design issue, non-integer register access is not supported at this time.",
+      );
     }
-    
+
     ilData.push(...rightAssignmentVirtualBranch);
 
     ilData.push({
@@ -169,7 +177,7 @@ export function parseAssignmentExpression(
     ilData.push({
       opcode: Opcodes.MEW,
       arguments: [
-        { 
+        {
           type: "register",
           value: configuration.firstValueLocation,
         },

@@ -3,7 +3,7 @@ import type { Configuration } from "../libs/types.js";
 
 export function loadU8ToU32(il: File, configuration: Configuration) {
   if (il["loadU8ToU32"]) return;
-  
+
   const ilData: Expression[] = [];
 
   ilData.push({

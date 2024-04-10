@@ -168,6 +168,6 @@ export function writeIL(file: File): Uint8Array {
       "WARN: ROM is too big to fit in dedicated memory! This may not be a problem, if you're using MMIO. See: docs todo",
     );
   }
-  
+
   return new Uint8Array(data);
 }
