@@ -89,13 +89,13 @@ for (const element of parsedFile.program.body) {
   await parseTopLevel(element, process.argv[2]);
 }
 
-if (process.env.NODE_ENV != "production") console.log(" - Assembling");
-const data = writeIL(il);
-
 if (process.env.NECC_DUMP_IL) {
   console.log(il);
   await writeFile("./il.json", JSON.stringify(il, null, 2));
 }
+
+if (process.env.NODE_ENV != "production") console.log(" - Assembling");
+const data = writeIL(il);
 
 if (process.env.NODE_ENV != "production") console.log(" - Writing file");
 
