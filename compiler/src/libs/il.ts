@@ -112,36 +112,29 @@ export function writeIL(file: File): Uint8Array {
 
       for (const argument of expression.arguments) {
         if (argument.type == "u8") {
-          if (typeof argument.value != "number") {
+          if (typeof argument.value != "number")
             throw new Error("u8 should be a number");
-          }
-
           expressionBuilt.push(argument.value);
         } else if (argument.type == "register") {
-          if (typeof argument.value != "number") {
+          if (typeof argument.value != "number")
             throw new Error("Register should be a number");
-          } else if (argument.value > 36 || argument.value < 0) {
+          if (argument.value > 36 || argument.value < 0)
             throw new Error("Register out of range");
-          }
 
           expressionBuilt.push(argument.value);
         } else if (argument.type == "u32") {
-          if (typeof argument.value != "number") {
+          if (typeof argument.value != "number")
             throw new Error("u32 should be a number");
-          }
-
           expressionBuilt.push(...toU32(argument.value));
         } else if (argument.type == "func") {
-          if (typeof argument.value != "string") {
+          if (typeof argument.value != "string")
             throw new Error("func should be a string");
-          } else if (!file[argument.value]) {
+          if (!file[argument.value])
             throw new Error(`could not find the function: '${argument.value}'`);
-          }
-
-          const calculatedLength = data.length + expressionBuilt.length - 2;
 
           expressionBuilt.push(0, 0, 0, 0);
-          positionsToFigureOut[calculatedLength] = argument.value;
+          positionsToFigureOut[data.length + expressionBuilt.length - 2] =
+            argument.value;
         }
       }
 
@@ -163,11 +156,9 @@ export function writeIL(file: File): Uint8Array {
     data.splice(realPosiiton - 2, 4, ...toU32(functionPosition));
   }
 
-  if (data.length > 4096) {
+  if (data.length > 4096)
     console.warn(
       "WARN: ROM is too big to fit in dedicated memory! This may not be a problem, if you're using MMIO. See: docs todo",
     );
-  }
-
   return new Uint8Array(data);
 }
