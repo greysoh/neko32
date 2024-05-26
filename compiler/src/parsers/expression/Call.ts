@@ -3,7 +3,7 @@ import { strict as assert } from "node:assert";
 import type { CallExpression, ExpressionStatement } from "@babel/types";
 
 import { Opcodes, type Expression, File } from "../../libs/il.js";
-import { STDType1Entries } from "../../std-type1/index.js";
+import { stdEntries } from "../../std/index.js";
 
 export function parseCallExpression(
   element: ExpressionStatement,
@@ -13,15 +13,6 @@ export function parseCallExpression(
   const expression: CallExpression = element.expression as CallExpression;
 
   if (expression.callee.type == "Identifier") {
-    // shut the hell your mouth
-
-    // @ts-ignore
-    // prettier-ignore
-    if (typeof STDType1Entries[expression.callee.name] == "function" && !il[expression.callee.name]) {
-      // @ts-ignore
-      STDType1Entries[expression.callee.name]();
-    }
-
     ilData.push({
       opcode: Opcodes.FUN,
       arguments: [

@@ -8,6 +8,7 @@ import { Registers, writeIL, type File } from "./libs/il.js";
 import type { Configuration } from "./libs/types.js";
 
 import { parseBlock } from "./parsers/ParseBlock.js";
+import { stdEntries } from "./std/index.js";
 
 // FIXME: The IL data might be out of order sometimes (workaround is fixed to not be as bulky).
 // This would be fixed if we switched to an array instead of a dictionary/JSON object
@@ -46,16 +47,29 @@ async function parseTopLevel(element: Statement, fileName: string) {
     }
 
     case "ImportDeclaration": {
-      const newFileName = join(fileName, "..", element.source.value);
-      const file = await readFile(newFileName, "utf-8");
+      if (element.source.value.startsWith("std:")) {
+        const stdValueRaw = element.source.value;
+        const stdValue = stdValueRaw.substring(stdValueRaw.indexOf(":") + 1);
 
-      const parsedFile = parse(file, {
-        sourceType: "module",
-        sourceFilename: newFileName,
-      });
+        if (il[stdValue]) break;
 
-      for (const element of parsedFile.program.body) {
-        await parseTopLevel(element, newFileName);
+        // @ts-ignore
+        if (stdEntries[stdValue]) {
+          // @ts-ignore
+          stdEntries[stdValue](il, compilerOptions);
+        }
+      } else {
+        const newFileName = join(fileName, "..", element.source.value);
+        const file = await readFile(newFileName, "utf-8");
+  
+        const parsedFile = parse(file, {
+          sourceType: "module",
+          sourceFilename: newFileName,
+        });
+  
+        for (const element of parsedFile.program.body) {
+          await parseTopLevel(element, newFileName);
+        }
       }
 
       break;
@@ -64,6 +78,7 @@ async function parseTopLevel(element: Statement, fileName: string) {
     case "ExportNamedDeclaration": {
       if (!element.declaration)
         throw new Error("You can't export nothing (ex: export;)");
+
       await parseTopLevel(element.declaration, fileName);
 
       break;

@@ -2,7 +2,7 @@ import { type Expression, type File, Opcodes, Registers } from "../libs/il.js";
 import type { Configuration } from "../libs/types.js";
 
 export function loadU8ToU32(il: File, configuration: Configuration) {
-  if (il["loadU8ToU32"]) return;
+  if (il["u8ToU32"]) return;
 
   const ilData: Expression[] = [];
 

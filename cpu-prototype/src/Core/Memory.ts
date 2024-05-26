@@ -65,7 +65,7 @@ export class Memory {
   clear(resetMMIO?: boolean): void {
     if (resetMMIO) this.mmioEvents.splice(0, this.mmioEvents.length);
 
-    // FIXME: Let's hope the GC cleans this up....
+    // FIXME: Let's hope the GC cleans this up...
     this.rawMemory = new Uint8Array(this.rawMemory.length);
   }
 

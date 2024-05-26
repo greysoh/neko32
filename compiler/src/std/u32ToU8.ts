@@ -5,7 +5,7 @@ import type { Configuration } from "../libs/types.js";
 This converts a u32, and splits it up into chunks in big-endian order.
 */
 export function loadU32ToU8(il: File, configuration: Configuration) {
-  if (il["loadU32ToU8"]) return;
+  if (il["u32ToU8"]) return;
 
   const ilData: Expression[] = [];
 

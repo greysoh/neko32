@@ -4,7 +4,7 @@ import { Opcodes, type Expression, type File } from "../../libs/il.js";
 import { CompilerNotImplementedError } from "../../libs/todo!.js";
 import type { Configuration } from "../../libs/types.js";
 
-import { STDType1Entries } from "../../std-type1/index.js";
+import { stdEntries } from "../../std/index.js";
 import { parseMemberExpression } from "./Member.js";
 
 export function parseBinaryExpression(
@@ -90,8 +90,8 @@ export function parseBinaryExpression(
       ],
     });
   } else if (expression.right.type == "BinaryExpression") {
-    if (!il["loadU8ToU32"]) STDType1Entries.loadU8ToU32(il, configuration);
-    if (!il["loadU32ToU8"]) STDType1Entries.loadU32ToU8(il, configuration);
+    if (!il["u8ToU32"]) stdEntries.u32ToU8(il, configuration);
+    if (!il["u32ToU8"]) stdEntries.u8ToU32(il, configuration);
 
     ilData.push({
       opcode: Opcodes.FUN,

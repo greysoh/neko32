@@ -34,7 +34,7 @@ binder.initMemoryMMIO(memory);
 
 binder.addMMIODevice(new KeyboardIO());
 
-console.log("[init] Starting CPU...");
+console.log("[init]  Starting CPU...");
 
 while (true) {
   cpu.tick();
