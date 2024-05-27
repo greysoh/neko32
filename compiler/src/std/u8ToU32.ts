@@ -1,46 +1,160 @@
-import { type Expression, type File, Opcodes, Registers } from "../libs/il.js";
+import { type File, Opcodes, Registers } from "../libs/il.js";
 import type { Configuration } from "../libs/types.js";
+
+// FIXME BEFORE PUSH:
+// code is written to 32 - 8 instead of 0 + 8
 
 export function loadU8ToU32(il: File, configuration: Configuration) {
   if (il["u8ToU32"]) return;
 
-  const ilData: Expression[] = [];
-
-  ilData.push({
-    opcode: Opcodes.REW,
-    arguments: [
-      {
-        type: "u32",
-        value: 0,
-      },
-      {
-        type: "register",
-        value: configuration.firstValueLocation,
-      },
-    ],
-  });
-
-  for (var i = 0; i < 24; i += 8) {
-    ilData.push({
-      opcode: Opcodes.REW,
+  // Using RMV shortens the file size by 6 bytes
+  il["u8ToU32"] = [
+    {
+      opcode: Opcodes.RMV,
       arguments: [
         {
-          type: "u32",
-          value: i,
+          type: "register",
+          value: Registers.c0,
+        },
+        {
+          type: "register",
+          value: configuration.firstValueLocation,
+        },
+      ],
+    },
+    {
+      opcode: Opcodes.RMV,
+      arguments: [
+        {
+          type: "register",
+          value: Registers.c0,
         },
         {
           type: "register",
           value: configuration.fourthValueLocation,
         },
       ],
-    });
+    },
+    {
+      opcode: Opcodes.FUN,
+      arguments: [
+        {
+          type: "func",
+          value: "u8ToU32-loopwrap"
+        }
+      ]
+    },
+    {
+      opcode: Opcodes.RET,
+      arguments: [
+        {
+          type: "register",
+          value: Registers.c1
+        }
+      ]
+    }
+  ];
 
-    ilData.push({
+  il["u8ToU32-loopwrap"] = [
+    {
+      opcode: Opcodes.FUN,
+      arguments: [
+        {
+          type: "func",
+          value: "u8ToU32-loop"
+        }
+      ]
+    },
+    {
+      opcode: Opcodes.REW,
+      arguments: [
+        {
+          type: "u32",
+          value: 8
+        },
+        {
+          type: "register",
+          value: configuration.secondValueLocation
+        }
+      ]
+    },
+    {
+      opcode: Opcodes.ADD,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.fourthValueLocation
+        },
+        {
+          type: "register",
+          value: configuration.secondValueLocation
+        },
+        {
+          type: "register",
+          value: configuration.fourthValueLocation
+        }
+      ]
+    },
+    {
+      opcode: Opcodes.REW,
+      arguments: [
+        {
+          type: "u32",
+          value: 32
+        },
+        {
+          type: "register",
+          value: configuration.thirdValueLocation
+        }
+      ]
+    },
+    {
+      opcode: Opcodes.EQL,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.fourthValueLocation
+        },
+        {
+          type: "register",
+          value: configuration.thirdValueLocation
+        },
+        {
+          type: "register",
+          value: configuration.secondValueLocation
+        }
+      ]
+    },
+    {
+      opcode: Opcodes.RET,
+      arguments: [
+        {
+          type: "register",
+          value: configuration.secondValueLocation
+        }
+      ]
+    },
+    {
+      opcode: Opcodes.REW,
+      arguments: [
+        {
+          type: "func",
+          value: "u8ToU32-loopwrap"
+        },
+        {
+          type: "register",
+          value: Registers.pc
+        }
+      ]
+    }
+  ]
+
+  il["u8ToU32-loop"] = [
+    {
       opcode: Opcodes.SPO,
       arguments: [],
-    });
-
-    ilData.push({
+    },
+    {
       opcode: Opcodes.SPE,
       arguments: [
         {
@@ -48,9 +162,8 @@ export function loadU8ToU32(il: File, configuration: Configuration) {
           value: configuration.secondValueLocation,
         },
       ],
-    });
-
-    ilData.push({
+    },
+    {
       opcode: Opcodes.LSB,
       arguments: [
         {
@@ -66,9 +179,8 @@ export function loadU8ToU32(il: File, configuration: Configuration) {
           value: configuration.thirdValueLocation,
         },
       ],
-    });
-
-    ilData.push({
+    },
+    {
       opcode: Opcodes.ORB,
       arguments: [
         {
@@ -81,35 +193,18 @@ export function loadU8ToU32(il: File, configuration: Configuration) {
         },
         {
           type: "register",
-          value: configuration.fourthValueLocation,
-        },
-      ],
-    });
-
-    ilData.push({
-      opcode: Opcodes.RMV,
-      arguments: [
-        {
-          type: "register",
-          value: configuration.fourthValueLocation,
-        },
-        {
-          type: "register",
           value: configuration.firstValueLocation,
         },
       ],
-    });
-  }
-
-  ilData.push({
-    opcode: Opcodes.RET,
-    arguments: [
-      {
-        type: "register",
-        value: Registers.c1,
-      },
-    ],
-  });
-
-  il["u8ToU32"] = ilData;
+    },
+    {
+      opcode: Opcodes.RET,
+      arguments: [
+        {
+          type: "register",
+          value: Registers.c1,
+        },
+      ],
+    }
+  ];
 }
